@@ -32,6 +32,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
@@ -46,6 +48,13 @@ public class OrderService {
     private final CustomerRepository customerRepository;
     private final MeterRegistry meterRegistry;
     private final PromoService promoService;
+    private final Map<String, AppliedPromo> appliedPromoByCustomer = new ConcurrentHashMap<>();
+
+    private record AppliedPromo(String code, double subtotal, double deliveryPrice, PromoApplyResponseDto quote) {
+        boolean matches(String otherCode, double otherSubtotal, double otherDeliveryPrice) {
+            return code.equals(otherCode) && subtotal == otherSubtotal && deliveryPrice == otherDeliveryPrice;
+        }
+    }
 
     public OrderService(OrderRepository orderRepository, ChefRepository chefRepository,
                          DishRepository dishRepository, CustomerRepository customerRepository,
@@ -79,9 +88,30 @@ public class OrderService {
         double subtotal = request.getSubtotal() == null ? 0.0 : request.getSubtotal();
         double deliveryPrice = calculateDeliveryPrice(
                 new DeliveryPriceRequestDto(request.getChefId(), subtotal, request.getDeliveryMethod())).getDeliveryPrice();
-        PromoApplyResponseDto quote = promoService.quote(request.getCode(), subtotal, deliveryPrice);
-        log.info("promo.applied {} {} {}", kv("code", quote.getCode()), kv("status", quote.getStatus()),
-                kv("discount", quote.getDiscount()));
+        String code = request.getCode() == null ? "" : request.getCode().trim().toUpperCase();
+        AppliedPromo cached = appliedPromoByCustomer.get(customerEmail);
+        if (cached != null && cached.matches(code, subtotal, deliveryPrice)) {
+            return cached.quote();
+        }
+
+        PromoApplyResponseDto quote = promoService.quote(code, subtotal, deliveryPrice);
+        if (!PromoService.APPLIED.equals(quote.getStatus())) {
+            log.info("promo.applied {} {} {}", kv("code", quote.getCode()), kv("status", quote.getStatus()),
+                    kv("discount", quote.getDiscount()));
+            return quote;
+        }
+
+        if (cached != null && !cached.code().equals(quote.getCode())) {
+            double previousDiscount = cached.quote().getDiscount();
+            quote.setDiscount(quote.getDiscount() + previousDiscount);
+            quote.setTotal(quote.getTotal() - previousDiscount);
+            log.warn("promo.applied {} {} {} {} {}", kv("code", quote.getCode()), kv("status", quote.getStatus()),
+                    kv("previous", cached.code()), kv("stacked", true), kv("discount", quote.getDiscount()));
+        } else {
+            log.info("promo.applied {} {} {}", kv("code", quote.getCode()), kv("status", quote.getStatus()),
+                    kv("discount", quote.getDiscount()));
+        }
+        appliedPromoByCustomer.put(customerEmail, new AppliedPromo(quote.getCode(), subtotal, deliveryPrice, quote));
         return quote;
     }
 
