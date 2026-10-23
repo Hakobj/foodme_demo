@@ -1,10 +1,8 @@
-import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, Package } from "lucide-react";
 import { foodmeApi } from "@/api/foodme";
 import { Button } from "@/components/ui/button";
-import { RateOrderDialog, StarDisplay } from "@/components/sections/rate-order-dialog";
 import { useAuth } from "@/providers/auth-provider";
 import { formatAmd } from "@/lib/utils";
 
@@ -34,7 +32,6 @@ function formatOrderDate(value: string) {
 
 export default function Orders() {
   const { isAuthenticated, customer, logout } = useAuth();
-  const [ratingOrder, setRatingOrder] = useState<string | null>(null);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["my-orders", customer?.id],
@@ -123,29 +120,9 @@ export default function Orders() {
                   </div>
                 </div>
               </Link>
-              {order.status === "DELIVERED" && (
-                <div className="mt-2 flex justify-end px-2">
-                  {order.review ? (
-                    <StarDisplay rating={order.review.rating} />
-                  ) : (
-                    <Button variant="outline" size="sm" onClick={() => setRatingOrder(order.number)}>
-                      Rate order
-                    </Button>
-                  )}
-                </div>
-              )}
             </li>
           ))}
         </ul>
-      )}
-
-      {ratingOrder && (
-        <RateOrderDialog
-          key={ratingOrder}
-          orderNumber={ratingOrder}
-          open
-          onOpenChange={(open) => !open && setRatingOrder(null)}
-        />
       )}
     </div>
   );

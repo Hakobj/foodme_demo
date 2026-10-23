@@ -19,7 +19,6 @@ import {
     DialogActions,
     TextField,
     Stack,
-    Rating,
 } from '@mui/material';
 import { OrderStatus, OrderStatusColors, OrderStatusTransitions } from '../../constants/OrderStatus.jsx';
 import { updateOrderStatus } from '../../api/order-api.js';
@@ -164,34 +163,6 @@ const OrderDetails = () => {
                     <Typography variant="h6">Total</Typography>
                     <Typography variant="h6">{record.totalPrice} AMD</Typography>
                 </Stack>
-
-                {record.status === 'DELIVERED' && (
-                    <>
-                        <Divider sx={{ my: 2 }} />
-                        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                            Customer review
-                        </Typography>
-                        {record.review ? (
-                            <Box>
-                                <Stack direction="row" alignItems="center" spacing={1}>
-                                    <Rating value={record.review.rating} readOnly size="small" />
-                                    <Typography variant="body2" color="text.secondary">
-                                        {new Date(record.review.createdAt).toLocaleString()}
-                                    </Typography>
-                                </Stack>
-                                {record.review.comment && (
-                                    <Typography
-                                        component="div"
-                                        sx={{ mt: 1, whiteSpace: 'pre-line' }}
-                                        dangerouslySetInnerHTML={{ __html: record.review.comment }}
-                                    />
-                                )}
-                            </Box>
-                        ) : (
-                            <Typography color="text.secondary">No review yet</Typography>
-                        )}
-                    </>
-                )}
 
                 {availableTransitions.length > 0 && (
                     <>

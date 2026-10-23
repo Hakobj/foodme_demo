@@ -29,13 +29,10 @@ public class OrderDto {
     private String rejectReason;
     private Double totalPrice;
     private Double deliveryPrice;
-    private String promoCode;
-    private Double discount;
     private AddressDto addressDto;
     private List<CreateOrderDishDto> createOrderDishes;
     private List<OrderDishDto> orderDishList;
     private LocalDateTime createdAt;
-    private OrderReviewDto review;
 
     public static OrderDto mapEntityToDto(Order entity) {
         if (entity == null) {
@@ -56,8 +53,6 @@ public class OrderDto {
         dto.setRejectReason(entity.getRejectReason());
         dto.setTotalPrice(entity.getTotalPrice());
         dto.setDeliveryPrice(entity.getDeliveryPrice());
-        dto.setPromoCode(entity.getPromoCode());
-        dto.setDiscount(entity.getDiscount());
         dto.setAddressDto(AddressDto.mapEntityToDto(entity.getAddress()));
         if (entity.getOrderDishList() != null) {
             dto.setOrderDishList(entity.getOrderDishList().stream()
@@ -66,7 +61,6 @@ public class OrderDto {
         }
         // FM-BUG-06
         dto.setCreatedAt(entity.getCreatedAt());
-        dto.setReview(OrderReviewDto.mapEntityToDto(entity.getReview()));
         return dto;
     }
 }

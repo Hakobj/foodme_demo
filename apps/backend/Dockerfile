@@ -14,7 +14,6 @@ ARG VITE_SENTRY_DSN_WEB=""
 ENV VITE_SENTRY_DSN=$VITE_SENTRY_DSN_WEB
 RUN npm run build
 
-
 # --- Build admin back office (react-admin + Vite) ----------------------------
 FROM node:22-alpine AS admin
 WORKDIR /admin

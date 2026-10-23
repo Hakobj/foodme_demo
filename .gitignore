@@ -1,7 +1,7 @@
 # --- Java / Gradle ---------------------------------------------------------
 *.class
 *.jar
-!**/gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.jar
 *.war
 *.ear
 .gradle/
@@ -34,6 +34,9 @@ blob-report/
 .env
 .env.*
 !.env.example
+.mcp.json
+!.mcp.json.example
+
 # --- IDE ------------------------------------------------------------------
 .idea/
 .vscode/
@@ -57,15 +60,3 @@ docs/planted-defects.md
 
 # Machine-local compose override (host-port remap for this workstation)
 infra/docker-compose.local.yml
-
-# --- Agent tooling (.claude -> .agents) ----------------------------------
-.agents/settings.local.json
-.agents/worktrees/
-
-# AgentSecrets environment files
-.env.development
-.env.staging
-.env.production
-
-# --- Mutation testing (local runs) ---------------------------------------
-.mutation/
