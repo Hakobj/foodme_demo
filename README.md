@@ -76,7 +76,8 @@ This adds one more service with dashboards, metrics and logs.
    choose the file **`render-monitoring.yaml`**.
 2. Deploy it and wait until `foodme-monitoring` is **Live**. Copy its URL
    (looks like `https://foodme-monitoring-xxxx.onrender.com`).
-3. Connect the two services — two settings:
+3. Connect the two services — two settings. Each one goes on that service's
+   **Environment** page ([how to find it](#how-to-open-a-services-environment-page)).
 
    **A.** On `foodme-monitoring` → **Environment** → set:
    - `BACKEND_HOST` = your app's address **without** `https://`,
@@ -90,6 +91,23 @@ This adds one more service with dashboards, metrics and logs.
    **Live** again.
 4. Open the monitoring URL. This is **Grafana**. Log in with `admin` / `admin`
    (it will ask you to set a new password — do it).
+
+### How to open a service's Environment page
+
+Come back here any time you need to add or change a setting.
+
+1. Go to [dashboard.render.com](https://dashboard.render.com). From any Render
+   page you can also click the **Render logo** (top left).
+2. In the list of services, click the service's name: `foodme-<yourname>` for
+   the app, or `foodme-monitoring` for monitoring.
+   Can't find it? Press **Ctrl + K** (**⌘ + K** on Mac) and type its name.
+3. In the menu on the left, click **Environment**.
+4. Under **Environment Variables**, click **+ Add** (if you only see **Edit**,
+   click that first). Type the name on the left and the value on the right.
+   To change an existing value, just edit it in place.
+5. Click **Save, rebuild, and deploy**. Don't pick **Save only** — the service
+   would keep using the old value.
+6. Wait until the service shows **Live** again.
 
 ---
 
