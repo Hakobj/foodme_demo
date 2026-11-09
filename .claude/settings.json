@@ -89,11 +89,6 @@
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/lint-edited-file.js\"",
             "timeout": 60,
             "statusMessage": "Linting edited file..."
-          },
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/sync-skills.js\"",
-            "timeout": 10
           }
         ]
       }

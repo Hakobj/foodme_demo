@@ -14,7 +14,7 @@ FoodMe is a food-ordering demo used as a **QA course project**. It is a monorepo
 
 App-specific commands, conventions and architecture live in path-scoped rules that load when you work in that app: `.claude/rules/backend.md`, `.claude/rules/web.md`, `.claude/rules/admin.md`. Testing rules: `.claude/rules/web-testing.md`, `.claude/rules/admin-testing.md`, `.claude/rules/db-testing.md`.
 
-Skills live in `.claude/skills/`: code review (`backend-review`, `frontend-review`), test writing (`write-unit-tests`, `write-integration-tests`, `write-e2e-tests`), running tests (`run-tests` for Java/TypeScript, `run-python-tests` for `tests-python/`) and `jira`. `.agents/skills/` holds copies for other agents; when you change one, update both.
+Skills live in `.claude/skills/`: code review (`backend-review`, `frontend-review`), test writing (`write-unit-tests`, `write-integration-tests`, `write-e2e-tests`), running tests (`run-tests` for Java/TypeScript, `run-python-tests` for `tests-python/`) and `jira`. `.agents/skills/` and `.agents/rules/` are symlinks to `.claude/skills/` and `.claude/rules/`, so other agents see the same files. Edit them under `.claude/` only.
 
 `AGENTS.md` is a symlink to this file, so other coding agents read the same instructions. Edit `CLAUDE.md` only.
 
