@@ -34,7 +34,7 @@ blob-report/
 .env
 .env.*
 !.env.example
-.mcp.json
+!.mcp.json
 !.mcp.json.example
 
 # --- IDE ------------------------------------------------------------------
