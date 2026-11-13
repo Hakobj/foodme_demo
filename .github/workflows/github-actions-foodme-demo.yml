@@ -1,32 +1,87 @@
 name: CI
 on:
+  workflow_dispatch:
   pull_request:
     branches: [main]
+  push:
+    branches:
+      - main
+      - 'releases/*'
+
+# A new push to the same PR/branch cancels the run that is still going.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   unit-tests:
+    name: Unit tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: { python-version: "3.12" }
+        with: { python-version: "3.12", cache: pip, cache-dependency-path: requirements.txt }
       - run: pip install -r requirements.txt
       - run: pytest -m unit
 
+  # Runs against the in-memory API mock (tests-python/integration/conftest.py), so no backend is needed.
   integration-tests:
+    name: Integration tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: { python-version: "3.12" }
+        with: { python-version: "3.12", cache: pip, cache-dependency-path: requirements.txt }
       - run: pip install -r requirements.txt
       - run: pytest -m integration
 
+  # Needs the real stack: Postgres + Spring Boot backend + the web/admin Vite dev servers
+  # (the suite starts the dev servers itself, see support/servers.py).
   e2e-tests:
+    name: E2E tests
     runs-on: ubuntu-latest
+    services:
+      postgres:                       # fresh DB every run; credentials = backend defaults
+        image: postgres:16
+        env: { POSTGRES_USER: foodme, POSTGRES_PASSWORD: foodme, POSTGRES_DB: foodme }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U foodme"
+          --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "17" }
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Start backend
+        working-directory: apps/backend
+        run: nohup ./gradlew bootRun > backend.log 2>&1 &
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            apps/web/package-lock.json
+            apps/admin/package-lock.json
+      - run: npm ci --prefix apps/web
+      - run: npm ci --prefix apps/admin
+
       - uses: actions/setup-python@v5
-        with: { python-version: "3.12" }
+        with: { python-version: "3.12", cache: pip, cache-dependency-path: requirements.txt }
       - run: pip install -r requirements.txt
       - run: playwright install --with-deps chromium
-      - run: pytest -m e2e
+
+      # Without this the `api` fixture would skip every e2e test and the job would still be green.
+      - name: Wait for backend
+        run: timeout 300 bash -c 'until curl -sf http://localhost:8081/actuator/health; do sleep 5; done'
+
+      - run: pytest -m e2e --tracing retain-on-failure --screenshot only-on-failure
+
+      - name: Backend log
+        if: failure()
+        run: cat apps/backend/backend.log
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with: { name: e2e-results, path: test-results/, if-no-files-found: ignore }
