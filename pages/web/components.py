@@ -35,6 +35,25 @@ class Header:
         return LoginPage(self.page).wait_loaded()
 
 
+class SignInForm:
+    """The "Sign in" tab of the auth panel (/login and checkout)."""
+
+    def __init__(self, page: Page):
+        self.page = page
+        self.tab = page.get_by_role("tab", name="Sign in")
+        self.form = page.get_by_role("form", name="Sign in")
+        self.email = self.form.get_by_label("Email")
+        self.password = self.form.get_by_label("Password")
+        self.submit_button = self.form.get_by_role("button", name="Sign in")
+        self.error = self.form.get_by_role("alert")
+
+    def sign_in(self, email: str, password: str = DEFAULT_PASSWORD) -> None:
+        self.tab.click()
+        self.email.fill(email)
+        self.password.fill(password)
+        self.submit_button.click()
+
+
 class CreateAccountForm:
     """The "Create account" tab, used on /login and at checkout."""
 

@@ -1,8 +1,11 @@
 # Lint / type-check config for the Python test suite. pytest config stays in pytest.ini.
 
 [tool.ruff]
+src = ["."]
 target-version = "py310"
 line-length = 120
+# Only the Python test suite; the rest of the monorepo (apps/, infra/, .claude/ hooks) is out of scope.
+include = ["clients/**/*.py", "pages/**/*.py", "support/**/*.py", "tests-python/**/*.py"]
 extend-exclude = [".venv", "test-results"]
 
 [tool.ruff.lint]
@@ -25,7 +28,8 @@ known-first-party = ["clients", "pages", "support"]
 
 [tool.mypy]
 python_version = "3.10"
-files = ["clients", "pages", "support", "tests", "conftest.py"]
+files = ["clients", "pages", "support", "tests-python"]
+mypy_path = "tests-python"
 exclude = ["\\.venv/", "test-results/"]
 explicit_package_bases = true
 check_untyped_defs = true

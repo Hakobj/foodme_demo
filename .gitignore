@@ -34,7 +34,6 @@ blob-report/
 .env
 .env.*
 !.env.example
-!.mcp.json
 !.mcp.json.example
 
 # --- IDE ------------------------------------------------------------------
@@ -72,3 +71,9 @@ __pycache__/
 .env.development
 .env.staging
 .env.production
+
+# Python test suite (tests-python/ + clients/, pages/, support/)
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/

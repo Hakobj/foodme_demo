@@ -17,3 +17,6 @@ class BaseClient:
 
     def _post(self, path: str, json: dict | None = None, token: str | None = None, **kwargs) -> requests.Response:
         return self.session.post(f"{self.base_url}{path}", json=json, headers=bearer(token), **kwargs)
+
+    def _patch(self, path: str, json: dict | None = None, token: str | None = None, **kwargs) -> requests.Response:
+        return self.session.patch(f"{self.base_url}{path}", json=json, headers=bearer(token), **kwargs)

@@ -34,6 +34,10 @@ class OrderShowPage(BasePage):
     def __init__(self, page: Page):
         super().__init__(page)
         self.status_updated_notification = page.get_by_text("Order status updated")
+        self.reject_dialog = page.get_by_role("dialog", name="Reject order")
+        self.reject_reason = self.reject_dialog.get_by_label("Rejection reason")
+        self.reject_confirm_button = self.reject_dialog.get_by_role("button", name="Reject order")
+        self.reason_required_warning = page.get_by_text("A rejection reason is required")
 
     def wait_loaded(self) -> OrderShowPage:
         expect(self.page).to_have_url(re.compile(r"#/orders/\d+/show"))
@@ -47,5 +51,15 @@ class OrderShowPage(BasePage):
         return self.page.get_by_text(status).first
 
     def mark_as(self, status: str) -> OrderShowPage:
-        self.page.get_by_role("button", name=f"Mark as {status}").click()
+        self.transition_button(status).click()
+        return self
+
+    def transition_button(self, status: str) -> Locator:
+        return self.page.get_by_role("button", name=f"Mark as {status}")
+
+    def reject(self, reason: str) -> OrderShowPage:
+        """Opens the reject dialog, types the reason and confirms."""
+        self.mark_as("REJECTED")
+        self.reject_reason.fill(reason)
+        self.reject_confirm_button.click()
         return self

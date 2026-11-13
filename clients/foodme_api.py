@@ -51,6 +51,12 @@ class OrderClient(BaseClient):
     def by_number(self, number: str) -> requests.Response:
         return self._get(f"/api/order/number/{number}")
 
+    def delivery_price(self, chef_id: int, subtotal: float | None, delivery_method: str) -> requests.Response:
+        return self._post(
+            "/api/order/delivery-price",
+            json={"chefId": chef_id, "subtotal": subtotal, "deliveryMethod": delivery_method},
+        )
+
 
 class AdminClient(BaseClient):
     """`/admin/**` — back-office REST API."""
@@ -60,6 +66,16 @@ class AdminClient(BaseClient):
 
     def orders(self, token: str, page: int = 0, size: int = 20) -> requests.Response:
         return self._get("/admin/order", token=token, params={"page": page, "size": size})
+
+    def order_by_id(self, token: str, order_id: int) -> requests.Response:
+        return self._get(f"/admin/order/{order_id}", token=token)
+
+    def update_order_status(
+        self, token: str, order_id: int, status: str, reject_reason: str | None = None
+    ) -> requests.Response:
+        return self._patch(
+            f"/admin/order/{order_id}/status", json={"status": status, "rejectReason": reject_reason}, token=token
+        )
 
 
 class FoodMeApi:

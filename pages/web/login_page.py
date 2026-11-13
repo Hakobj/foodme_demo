@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from playwright.sync_api import Page, expect
 
 from pages.base_page import BasePage
-from pages.web.components import CreateAccountForm
+from pages.web.components import CreateAccountForm, SignInForm
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -20,6 +20,7 @@ class LoginPage(BasePage):
     def __init__(self, page: Page):
         super().__init__(page)
         self.account = CreateAccountForm(page)
+        self.sign_in_form = SignInForm(page)
 
     def wait_loaded(self) -> Self:
         expect(self.page).to_have_url(re.compile(r"/login"))
@@ -30,4 +31,11 @@ class LoginPage(BasePage):
         from pages.web.orders_pages import OrdersPage
 
         self.account.register(name, phone=phone)
+        return OrdersPage(self.page)
+
+    def sign_in(self, email: str, password: str) -> OrdersPage:
+        """Signs in through the "Sign in" tab; on success the app redirects to the orders history."""
+        from pages.web.orders_pages import OrdersPage
+
+        self.sign_in_form.sign_in(email, password)
         return OrdersPage(self.page)

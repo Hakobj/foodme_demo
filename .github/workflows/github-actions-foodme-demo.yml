@@ -1,0 +1,46 @@
+name: CI
+on:
+  pull_request:
+    branches: [main]
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - run: pytest -m unit
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - run: pytest -m integration
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - run: playwright install --with-deps chromium
+      - run: pytest -m e2e
+qodana:
+    name: Qodana
+    runs-on: ubuntu-latest
+    permissions: { contents: write, pull-requests: write, checks: write }
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0          # Qodana needs history to find what the PR changed
+      - uses: JetBrains/qodana-action@v2025.2   # same version as the linter in qodana.yaml
+        with:
+          args: --project-dir,apps/backend
+        env:
+          QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}

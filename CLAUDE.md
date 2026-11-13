@@ -10,7 +10,8 @@ FoodMe is a food-ordering demo used as a **QA course project**. It is a monorepo
 - `apps/web` — customer storefront: React 19 + TypeScript + Vite + Tailwind
 - `apps/admin` — back office: react-admin + MUI (plain JS/JSX)
 - `infra/monitoring` — Prometheus + Loki + Grafana + Grafana MCP in one container (see `infra/monitoring/README.md`)
-- `tests-python` — Python port of the test suites (pytest + requests + Playwright, Page Object Model; see `tests-python/README.md`)
+- `tests-python` — Python port of the test suites (pytest + requests + Playwright), tests only: `unit/`, `integration/`, `e2e/`
+- `clients/`, `pages/`, `support/` (repo root) — API clients, page objects and helpers for `tests-python`; `pytest.ini`, `pyproject.toml`, `requirements*.txt` and `.venv` are at the repo root too. Run pytest from the repo root (see `TESTING.md`)
 
 App-specific commands, conventions and architecture live in path-scoped rules that load when you work in that app: `.claude/rules/backend.md`, `.claude/rules/web.md`, `.claude/rules/admin.md`. Testing rules: `.claude/rules/web-testing.md`, `.claude/rules/admin-testing.md`, `.claude/rules/db-testing.md`.
 

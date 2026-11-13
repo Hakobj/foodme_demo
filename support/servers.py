@@ -11,7 +11,7 @@ from pathlib import Path
 
 import requests
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[1]  # support/servers.py -> repo root
 
 
 def is_up(url: str) -> bool:

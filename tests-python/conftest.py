@@ -1,10 +1,12 @@
 from collections.abc import Iterator
+from pathlib import Path
 
 import pytest
 import requests
 
 from clients import FoodMeApi
 from support.config import API_BASE_URL
+from support.markers import suite_markers
 from support.servers import is_up
 
 
@@ -17,9 +19,13 @@ def api() -> Iterator[FoodMeApi]:
         yield FoodMeApi(session, API_BASE_URL)
 
 
-def pytest_collection_modifyitems(items):
-    """Marks each test with its suite (api / web / admin) from its folder, so `-m web` works."""
+def pytest_collection_modifyitems(config, items):
+    """Marks each test with its level (unit / integration / e2e) and suite from its folder, so `-m e2e` works."""
+    tests_root = Path(__file__).parent
     for item in items:
-        suite = item.path.parent.name
-        if suite in ("api", "web", "admin"):
-            item.add_marker(getattr(pytest.mark, suite))
+        try:
+            parts = item.path.relative_to(tests_root).parts
+        except ValueError:
+            continue
+        for name in suite_markers(parts):
+            item.add_marker(getattr(pytest.mark, name))
