@@ -1,0 +1,11 @@
+{
+  "project_id": "5986fc43-5216-4b65-9e2e-19333a6edb88",
+  "project_name": "my-creds",
+  "description": "agents for foodme testing",
+  "environment": "development",
+  "workspace_id": "5235ad40-0bc1-4352-87c5-45f65faa7f95",
+  "workspace_name": "Hakob's Workspace",
+  "last_pull": "",
+  "last_push": "",
+  "storage_mode": 1
+}

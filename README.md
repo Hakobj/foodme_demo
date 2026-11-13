@@ -1,5 +1,7 @@
 # FoodMe — deploy it yourself, step by step
 
+> Automated tests (Python, pytest + Playwright): see [TESTING.md](TESTING.md).
+
 You will put a small food-ordering app on the internet, plus a monitoring
 dashboard for it. Everything uses **free** accounts. No coding needed.
 

@@ -34,7 +34,6 @@ blob-report/
 .env
 .env.*
 !.env.example
-.mcp.json
 !.mcp.json.example
 
 # --- IDE ------------------------------------------------------------------
@@ -60,3 +59,21 @@ docs/planted-defects.md
 
 # Machine-local compose override (host-port remap for this workstation)
 infra/docker-compose.local.yml
+
+# --- Claude Code hook logs ---------------------------------------------
+.claude/logs/
+
+# --- Python ---------------------------------------------------------------
+__pycache__/
+*.pyc
+
+# AgentSecrets environment files
+.env.development
+.env.staging
+.env.production
+
+# Python test suite (tests-python/ + clients/, pages/, support/)
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/

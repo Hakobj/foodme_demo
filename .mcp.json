@@ -1,0 +1,33 @@
+{
+  "mcpServers": {
+    "atlassian": {
+      "type": "stdio",
+      "command": "node",
+      "args": [".claude/mcp/atlassian-stdio.cjs"],
+      "env": {
+        "JIRA_URL": "https://julfayanhakob91.atlassian.net",
+        "JIRA_USERNAME": "julfayanhakob91@gmail.com",
+        "JIRA_PROJECTS_FILTER": "SCRUM",
+        "JIRA_API_TOKEN": "${JIRA_API_TOKEN:-}"
+      }
+    },
+    "qase": {
+      "type": "stdio",
+      "command": "node",
+      "args": [".claude/mcp/qase-stdio.cjs"],
+      "env": {
+        "QASE_API_TOKEN": "${QASE_API_TOKEN:-}"
+      }
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@playwright/mcp@0.0.85"]
+    },
+    "agentsecrets": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "agentsecrets", "mcp", "serve"]
+    }
+  }
+}
