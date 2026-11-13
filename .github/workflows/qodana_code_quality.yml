@@ -6,7 +6,6 @@ on:
   push:
     branches:
       - main
-      - 'releases/*'
 
 # A new push to the same PR/branch cancels the run that is still going.
 concurrency:
