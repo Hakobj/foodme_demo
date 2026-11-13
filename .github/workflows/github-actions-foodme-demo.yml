@@ -30,7 +30,8 @@ jobs:
       - run: pip install -r requirements.txt
       - run: playwright install --with-deps chromium
       - run: pytest -m e2e
-qodana:
+
+  qodana:
     name: Qodana
     runs-on: ubuntu-latest
     permissions: { contents: write, pull-requests: write, checks: write }
