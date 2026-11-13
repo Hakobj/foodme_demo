@@ -5,7 +5,6 @@ from playwright.sync_api import Page, expect
 from pages.admin import AdminLoginPage
 from pages.web import ChefPage, ExplorePage
 from support.api import admin_token, create_order_via_api, find_dish_with_additions
-from support.config import API_BASE_URL
 
 
 def test_explore_chef_add_2_dishes_cart_total_cash_checkout_success(page: Page):
@@ -59,7 +58,7 @@ def test_takeaway_checkout_succeeds_without_address(page: Page, cart_with_first_
     expect(success.title).to_be_visible()
 
 
-def test_admin_can_login_and_list_orders_after_a_storefront_checkout(page: Page, api):
+def test_admin_can_login_and_list_orders_after_a_storefront_checkout(page: Page, api, admin_server):
     order = create_order_via_api(
         api, name="Admin Smoke", phone="+37490000000", email="admin-smoke@example.com", note="e2e admin visibility"
     )
@@ -71,6 +70,6 @@ def test_admin_can_login_and_list_orders_after_a_storefront_checkout(page: Page,
     numbers = [o["number"] for o in orders.json()["list"]]
     assert order["number"] in numbers
 
-    # The backend serves the built admin SPA at /backoffice (Docker build only), same origin as the API.
-    login = AdminLoginPage(page).open_at(f"{API_BASE_URL}/backoffice")
+    # The backend is mocked, so the back office is opened on its own dev server (not <backend>/backoffice).
+    login = AdminLoginPage(page).open_at(admin_server)
     expect(login.username).to_be_visible(timeout=15_000)

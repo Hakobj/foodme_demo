@@ -58,9 +58,9 @@ class ChefPage(BasePage):
         return DishModal(self.page)
 
     def open_dish_by_name(self, name: str) -> DishModal:
-        card = self.dish_card(name)
-        card.scroll_into_view_if_needed()
-        card.click()
+        # click() scrolls into view itself and retries if React re-renders the card mid-action;
+        # a separate scroll_into_view_if_needed() fails on such a detach.
+        self.dish_card(name).click()
         return DishModal(self.page)
 
     def add_dish_to_cart(self, index: int = 0) -> CartPanel:
