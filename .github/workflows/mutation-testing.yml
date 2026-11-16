@@ -208,6 +208,8 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           # Built-in token: lets this workflow run in the PR that adds it (comments appear as github-actions[bot]).
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Also run when the push came from @claude fixing the PR (these jobs only comment, so no loop).
+          allowed_bots: "claude"
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
