@@ -237,7 +237,8 @@ jobs:
             ### Other survivors (one line per class)
           claude_args: |
             --max-turns 30
-            --allowedTools "Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(git diff:*),Read,Glob,Grep"
+            --allowedTools "Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(git diff:*),Read,Glob,Grep,Write,Bash(cat:*),Bash(ls:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(jq:*),Bash(grep:*),Bash(find:*)"
+            --append-system-prompt "To post a PR comment, save the Markdown with the Write tool to .ci-context/comment.md and run: gh pr comment <PR number> --body-file .ci-context/comment.md. Never pass long Markdown inline with --body. Writing files here is only for building comments: the job cannot commit or push."
 
       - name: Enforce threshold
         if: env.THRESHOLD != '0'
