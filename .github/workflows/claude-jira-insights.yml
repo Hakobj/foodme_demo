@@ -60,17 +60,33 @@ jobs:
           JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
         run: |
+          # Strip spaces/newlines that sneak in when pasting secrets.
+          JIRA_EMAIL=$(printf '%s' "$JIRA_EMAIL" | tr -d '[:space:]')
+          JIRA_API_TOKEN=$(printf '%s' "$JIRA_API_TOKEN" | tr -d '[:space:]')
           if [ -z "$JIRA_EMAIL" ] || [ -z "$JIRA_API_TOKEN" ]; then
             echo "::error::Set the JIRA_EMAIL and JIRA_API_TOKEN repository secrets."
             exit 1
           fi
+          echo "Email: ${#JIRA_EMAIL} chars, domain @${JIRA_EMAIL#*@}; token: ${#JIRA_API_TOKEN} chars, starts ${JIRA_API_TOKEN:0:5}"
+
+          # Check the login first: /myself returns 401 for bad credentials, whereas
+          # /issue returns 404 for anonymous requests, which hides the real cause.
+          ME=$(curl -sS -o /tmp/jira-me.json -w '%{http_code}' \
+            -u "$JIRA_EMAIL:$JIRA_API_TOKEN" -H "Accept: application/json" "$JIRA_BASE_URL/rest/api/3/myself")
+          if [ "$ME" != "200" ]; then
+            echo "::error::Jira login failed (HTTP $ME at /myself). JIRA_EMAIL must be your Atlassian login email and JIRA_API_TOKEN a classic API token from id.atlassian.com for that same account."
+            head -c 300 /tmp/jira-me.json; echo
+            exit 1
+          fi
+          echo "Jira login OK as: $(jq -r '.displayName' /tmp/jira-me.json)"
+
           mkdir -p .ci-context
           FIELDS="summary,description,status,issuetype,priority,labels,assignee,subtasks,issuelinks,comment,parent"
           CODE=$(curl -sS -o .ci-context/jira-issue.json -w '%{http_code}' \
             -u "$JIRA_EMAIL:$JIRA_API_TOKEN" -H "Accept: application/json" \
             "$JIRA_BASE_URL/rest/api/3/issue/$KEY?fields=$FIELDS")
           if [ "$CODE" != "200" ]; then
-            echo "::error::Jira returned HTTP $CODE for $KEY"
+            echo "::error::Jira returned HTTP $CODE for $KEY (login is OK, so this account can't see the issue or the key is wrong)"
             head -c 500 .ci-context/jira-issue.json; echo
             exit 1
           fi
