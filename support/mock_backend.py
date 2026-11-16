@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import re
 from datetime import datetime
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 from urllib.parse import parse_qs, urlsplit
 
@@ -16,6 +17,11 @@ import requests
 from requests.adapters import BaseAdapter
 
 from support.config import ADMIN_PASSWORD, ADMIN_USERNAME, DEFAULT_PASSWORD
+
+# Same as CreateOrderReviewRequestDto on the backend.
+REVIEW_COMMENT_MAX = 1000
+REVIEW_RATING_MESSAGE = "Rating must be a whole number from 1 to 5"
+REVIEW_COMMENT_MESSAGE = "Comment must be at most 1000 characters"
 
 
 class MockFoodMeBackend(BaseAdapter):
@@ -37,6 +43,7 @@ class MockFoodMeBackend(BaseAdapter):
                 "id": 1,
                 "username": "marta-k",
                 "status": "ACTIVE",
+                "rating": 4.7,
                 "deliveryPrice": 500,
                 "freeDeliveryFrom": 5000,
                 "dishes": [
@@ -111,6 +118,12 @@ class MockFoodMeBackend(BaseAdapter):
                 return self._error(401, "Unauthorized")
             orders = [order for order in self.orders.values() if order["customerId"] == customer["id"]]
             return 200, {"count": len(orders), "list": [self._public_order(o) for o in orders]}
+        review_match = re.fullmatch(r"/api/customer/orders/([^/]+)/review", path)
+        if method == "POST" and review_match:
+            customer = self._customer_from_headers(headers)
+            if customer is None:
+                return self._error(401, "Unauthorized")
+            return self._review_order(review_match.group(1), body, customer)
 
         if method == "GET" and path == "/api/chef/active":
             chefs = [self._public_chef(chef) for chef in self.chefs.values() if chef["status"] == "ACTIVE"]
@@ -227,9 +240,55 @@ class MockFoodMeBackend(BaseAdapter):
             "paymentType": body.get("paymentType"),
             "deliveryMethod": body.get("deliveryMethod"),
             "createOrderDishes": body.get("createOrderDishes", []),
+            "review": None,
         }
         self.orders[order_id] = order
         return 200, self._public_order(order)
+
+    def _review_order(self, number: str, body: dict[str, Any], customer: dict[str, Any]) -> tuple[int, dict[str, Any]]:
+        """SCRUM-6, same rules and messages as OrderReviewService (body validation runs first, like @Valid)."""
+        rating = body.get("rating")
+        if (
+            not isinstance(rating, (int, float))
+            or isinstance(rating, bool)
+            or not float(rating).is_integer()
+            or not 1 <= rating <= 5
+        ):
+            return self._error(400, REVIEW_RATING_MESSAGE)
+        comment = body.get("comment")
+        if comment is not None and (not isinstance(comment, str) or len(comment) > REVIEW_COMMENT_MAX):
+            return self._error(400, REVIEW_COMMENT_MESSAGE)
+
+        # Someone else's order looks exactly like a missing one.
+        order = next(
+            (o for o in self.orders.values() if o["number"] == number and o["customerId"] == customer["id"]),
+            None,
+        )
+        if order is None:
+            return self._error(404, f"Order {number} not found")
+        if order["status"] != "DELIVERED":
+            return self._error(400, "Only delivered orders can be reviewed.")
+        if order.get("review"):
+            return self._error(400, "Order already reviewed.")
+
+        comment = comment.strip() if isinstance(comment, str) else None
+        order["review"] = {
+            "rating": int(rating),
+            "comment": comment or None,
+            "createdAt": datetime.now().astimezone().isoformat(timespec="microseconds"),
+        }
+        self._recalculate_chef_rating(order.get("chefId"))
+        return 200, dict(order["review"])
+
+    def _recalculate_chef_rating(self, chef_id: Any) -> None:
+        chef = self.chefs.get(chef_id) if isinstance(chef_id, int) else None
+        if chef is None:
+            return
+        ratings = [
+            o["review"]["rating"] for o in self.orders.values() if o.get("chefId") == chef_id and o.get("review")
+        ]
+        average = Decimal(sum(ratings)) / Decimal(len(ratings))
+        chef["rating"] = float(average.quantize(Decimal("0.1"), rounding=ROUND_HALF_UP))
 
     def _update_order_status(self, order: dict[str, Any], body: dict[str, Any]) -> tuple[int, dict[str, Any]]:
         current = order["status"]

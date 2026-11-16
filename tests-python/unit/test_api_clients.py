@@ -71,6 +71,16 @@ def test_customer_orders_without_token_sends_no_auth_header(api, session):
     session.get.assert_called_once_with(f"{BASE}/api/customer/orders", headers={})
 
 
+def test_customer_review_order_posts_payload_with_token(api, session):
+    api.customer.review_order("FM-100001", {"rating": 5, "comment": "Great"}, token="tok")
+
+    session.post.assert_called_once_with(
+        f"{BASE}/api/customer/orders/FM-100001/review",
+        json={"rating": 5, "comment": "Great"},
+        headers={"Authorization": "Bearer tok"},
+    )
+
+
 def test_chefs_active_uses_default_paging(api, session):
     api.chefs.active()
 

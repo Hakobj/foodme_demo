@@ -27,6 +27,10 @@ class OrdersListPage(BasePage):
         self.order(number).click()
         return OrderShowPage(self.page).wait_loaded()
 
+    def order_rating(self, number: str) -> Locator:
+        """SCRUM-6 R23: the small stars in a rated order's row."""
+        return self.rows.filter(has_text=number).get_by_role("img", name=re.compile(r"Rated \d out of 5"))
+
 
 class OrderShowPage(BasePage):
     STATUS_TIMEOUT = 10_000
@@ -38,6 +42,15 @@ class OrderShowPage(BasePage):
         self.reject_reason = self.reject_dialog.get_by_label("Rejection reason")
         self.reject_confirm_button = self.reject_dialog.get_by_role("button", name="Reject order")
         self.reason_required_warning = page.get_by_text("A rejection reason is required")
+        # SCRUM-6: only rendered for DELIVERED orders.
+        self.customer_review = page.get_by_role("region", name="Customer review")
+        self.no_review_text = self.customer_review.get_by_text("No review yet")
+
+    def review_stars(self, rating: int) -> Locator:
+        return self.customer_review.get_by_role("img", name=f"Rated {rating} out of 5")
+
+    def review_comment(self, comment: str) -> Locator:
+        return self.customer_review.get_by_text(comment)
 
     def wait_loaded(self) -> OrderShowPage:
         expect(self.page).to_have_url(re.compile(r"#/orders/\d+/show"))

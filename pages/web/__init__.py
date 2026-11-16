@@ -5,7 +5,7 @@ from pages.web.components import CreateAccountForm, Header, SignInForm
 from pages.web.explore_page import ExplorePage
 from pages.web.home_page import HomePage
 from pages.web.login_page import LoginPage
-from pages.web.orders_pages import OrderFailedPage, OrdersPage, OrderSuccessPage, TrackingPage
+from pages.web.orders_pages import OrderFailedPage, OrdersPage, OrderSuccessPage, RateOrderDialog, TrackingPage
 
 __all__ = [
     "CartPanel",
@@ -20,6 +20,7 @@ __all__ = [
     "OrderFailedPage",
     "OrderSuccessPage",
     "OrdersPage",
+    "RateOrderDialog",
     "SignInForm",
     "TrackingPage",
 ]

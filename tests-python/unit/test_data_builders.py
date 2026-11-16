@@ -2,7 +2,7 @@
 
 import re
 
-from support.api import cash_order_payload, register_payload, unique_email
+from support.api import cash_order_payload, register_payload, review_payload, unique_email
 from support.config import DEFAULT_PASSWORD
 
 
@@ -67,3 +67,15 @@ def test_cash_order_payload_without_note_omits_the_key():
 
 def test_cash_order_payload_allows_other_payment_type():
     assert cash_order_payload(1, 2, payment_type="CARD")["paymentType"] == "CARD"
+
+
+def test_review_payload_with_comment():
+    assert review_payload(4, "Tasty") == {"rating": 4, "comment": "Tasty"}
+
+
+def test_review_payload_without_comment_omits_the_key():
+    assert review_payload(5) == {"rating": 5}
+
+
+def test_review_payload_passes_invalid_ratings_through_unchanged():
+    assert review_payload(4.5) == {"rating": 4.5}

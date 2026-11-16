@@ -24,6 +24,10 @@ class CustomerClient(BaseClient):
     def orders(self, token: str | None = None) -> requests.Response:
         return self._get("/api/customer/orders", token=token)
 
+    def review_order(self, number: str, payload: dict, token: str | None = None) -> requests.Response:
+        """SCRUM-6: rate a delivered order, payload = {"rating": 1..5, "comment": optional}."""
+        return self._post(f"/api/customer/orders/{number}/review", json=payload, token=token)
+
 
 class ChefClient(BaseClient):
     """`/api/chef`."""

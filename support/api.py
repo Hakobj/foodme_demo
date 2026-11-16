@@ -43,6 +43,14 @@ def cash_order_payload(
     return body
 
 
+def review_payload(rating: object, comment: str | None = None) -> dict:
+    """Body for POST /api/customer/orders/{number}/review. `rating` is untyped so tests can send bad values."""
+    body: dict = {"rating": rating}
+    if comment is not None:
+        body["comment"] = comment
+    return body
+
+
 # ---- flows (preconditions; they assert so a broken setup fails loudly) ----------------------
 
 
@@ -112,3 +120,36 @@ def admin_token(api: FoodMeApi) -> str:
     token = res.json()["token"]
     assert token
     return token
+
+
+def deliver_order(api: FoodMeApi, order_number: str) -> dict:
+    """Moves an order NEW -> ACCEPTED -> DELIVERED through the admin API; returns the delivered order."""
+    token = admin_token(api)
+    order_id = api.orders.by_number(order_number).json()["id"]
+    for status in ("ACCEPTED", "DELIVERED"):
+        res = api.admin.update_order_status(token, order_id, status)
+        assert res.ok, f"{status} failed: {res.status_code} {res.text}"
+    return res.json()
+
+
+def create_delivered_order(api: FoodMeApi, chef_id: int | None = None, full_name: str = "Review Customer") -> dict:
+    """SCRUM-6 precondition: a fresh customer with one DELIVERED order.
+
+    Returns {"token", "email", "number", "chef_id"}. Defaults to the first active chef.
+    """
+    if chef_id is None:
+        chef, dish = first_chef_and_dish(api)
+    else:
+        chef = chef_detail(api, chef_id)
+        dish = (chef.get("dishes") or [None])[0]
+        assert dish, f"chef {chef_id} has no dishes"
+    customer = register_customer(api, full_name=full_name)
+    order = create_order(api, customer["token"], cash_order_payload(chef["id"], dish["id"]))
+    deliver_order(api, order["number"])
+    return {**customer, "number": order["number"], "chef_id": chef["id"]}
+
+
+def review_order(api: FoodMeApi, token: str, number: str, rating: int, comment: str | None = None) -> dict:
+    res = api.customer.review_order(number, review_payload(rating, comment), token=token)
+    assert res.ok, f"review failed: {res.status_code} {res.text}"
+    return res.json()

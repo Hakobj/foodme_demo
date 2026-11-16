@@ -29,11 +29,12 @@ tests-python/
                       (the `api` fixture): api.auth / api.customer / api.chefs / api.dishes / api.orders / api.admin
   pages/base_page.py
   pages/web/          storefront page objects: HomePage, ExplorePage, ChefPage + DishModal, CartPanel,
-                      CheckoutPage, LoginPage, OrdersPage, OrderSuccessPage, TrackingPage, OrderFailedPage,
+                      CheckoutPage, LoginPage, OrdersPage + RateOrderDialog, OrderSuccessPage, TrackingPage, OrderFailedPage,
                       shared components Header + CreateAccountForm
   pages/admin/        back-office page objects: AdminLoginPage, Sidebar, OrdersListPage, OrderShowPage,
                       ChefsListPage, DishesListPage
-  support/api.py      test-data builders + API flows (register_customer, create_order_via_api, ...)
+  support/api.py      test-data builders + API flows (register_customer, create_order_via_api,
+                      create_delivered_order, review_order, ...)
   support/config.py   URLs / credentials (env overrides)
   support/servers.py  starts the Vite dev servers for e2e when they aren't running
   support/markers.py  folder -> pytest marker mapping (used by conftest.py)

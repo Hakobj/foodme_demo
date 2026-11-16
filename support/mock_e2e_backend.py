@@ -1,6 +1,6 @@
 """In-memory FoodMe backend for the e2e (browser) tests.
 
-Extends the integration mock (`support/mock_backend.py`, unchanged) with:
+Extends the integration mock (`support/mock_backend.py`, which also implements order reviews) with:
 - seed data shaped like the real API responses the storefront and back office render
   (6 chefs, 3 dishes each, dish tags, additions, images as inline SVG data URIs);
 - the extra endpoints the UIs call (`/api/dish/tags`, `/admin/chef`, `/admin/dish`, ...);
