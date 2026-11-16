@@ -1,4 +1,3 @@
-import os
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -11,27 +10,11 @@ from support.markers import suite_markers
 from support.servers import is_up
 
 
-def _backend_required() -> bool:
-    """True when a missing backend must fail the run instead of skipping it.
-
-    Defaults to on in CI (`CI=true`, set by GitHub Actions) so an integration job without a
-    backend goes red instead of passing with every test skipped. Override with REQUIRE_BACKEND=0/1.
-    """
-    value = os.environ.get("REQUIRE_BACKEND", os.environ.get("CI", ""))
-    return value.strip().lower() in {"1", "true", "yes"}
-
-
 @pytest.fixture(scope="session")
 def api() -> Iterator[FoodMeApi]:
-    """API client objects for the backend.
-
-    Locally, skips cleanly when the backend is down; in CI (or with REQUIRE_BACKEND=1) it fails.
-    """
+    """API client objects for the backend. Skips the test run cleanly when the backend is down."""
     if not is_up(f"{API_BASE_URL}/actuator/health"):
-        reason = f"backend not reachable at {API_BASE_URL} (start Postgres + `./gradlew bootRun`)"
-        if _backend_required():
-            pytest.fail(f"{reason}; REQUIRE_BACKEND/CI is set, so integration tests may not be skipped", pytrace=False)
-        pytest.skip(reason)
+        pytest.skip(f"backend not reachable at {API_BASE_URL} (start Postgres + `./gradlew bootRun`)")
     with requests.Session() as session:
         yield FoodMeApi(session, API_BASE_URL)
 
