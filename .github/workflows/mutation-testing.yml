@@ -31,6 +31,52 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Control experiment, independent of PIT: plant a real bug on a line that a
+  # test checks and make sure that test then fails. If it doesn't, the tests
+  # (and therefore any "killed" mutant) can't be trusted.
+  planted-bug-check:
+    name: Planted bug is caught by tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: apps/backend
+    env:
+      SRC: src/main/java/am/foodme/backend/service/OrderService.java
+      TEST: am.foodme.backend.OrderControllerTest.createOrder_nonCashPayment_rejectedWithBadRequest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Control - test passes on the real code
+        run: |
+          chmod +x gradlew
+          ./gradlew test --no-daemon --tests "$TEST"
+
+      - name: Plant bug - negate the CASH payment check
+        run: |
+          grep -q 'if (!"CASH".equals(orderDto.getPaymentType()))' "$SRC" || { echo "::error::CASH check not found in $SRC; update this job"; exit 1; }
+          sed -i 's/if (!"CASH".equals(orderDto.getPaymentType()))/if ("CASH".equals(orderDto.getPaymentType()))/' "$SRC"
+          git diff --unified=0 -- "$SRC"
+
+      - name: Experiment - the same test must now fail
+        run: |
+          if ./gradlew test --no-daemon --tests "$TEST"; then
+            echo "::error::The planted bug was NOT caught: $TEST still passes. Mutation results can't be trusted."
+            exit 1
+          fi
+          echo "✅ Planted bug caught: $TEST failed as expected." | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Restore code
+        if: always()
+        run: git checkout -- "$SRC"
+
   pitest:
     name: PIT mutation testing (backend)
     runs-on: ubuntu-latest
@@ -95,6 +141,34 @@ jobs:
           weakest = sorted(per_class.items(), key=lambda kv: -(kv[1]["SURVIVED"] + kv[1]["NO_COVERAGE"]))[:10]
           for cls, c in weakest:
               lines.append(f"| `{cls.replace('am.foodme.backend.', '')}` | {c['KILLED'] + c['TIMED_OUT']} | {c['SURVIVED']} | {c['NO_COVERAGE']} |")
+          # Proof that "killed" means "a real test failed": show which test killed each mutant.
+          killed = [m for m in muts if m.get("status") == "KILLED" and m.findtext("killingTest")]
+          lines += ["", "### Sample of killed mutants (and the test that failed)",
+                    "| Class:line | Mutation | Killed by |", "|---|---|---|"]
+          for m in killed[:10]:
+              test = m.findtext("killingTest")
+              test = test.split("[method:")[-1].split("(")[0] if "[method:" in test else test
+              lines.append(f"| `{m.findtext('mutatedClass').rsplit('.', 1)[-1]}:{m.findtext('lineNumber')}` | {m.findtext('description')} | `{test}` |")
+
+          # Sanity checks: PIT must kill something, and a known-tested line must be killed by its test.
+          problems = []
+          if not killed:
+              problems.append("PIT killed 0 mutants: tests are not being run against mutants (misconfiguration).")
+          src = "apps/backend/src/main/java/am/foodme/backend/service/OrderService.java"
+          src_lines = open(src, encoding="utf-8").read().splitlines()
+          cash_line = next((i for i, l in enumerate(src_lines, 1) if 'Only CASH payment is supported' in l), None)
+          if cash_line:
+              check_line = cash_line - 1  # the `if (!"CASH".equals(...))` line
+              cands = [m for m in muts if m.findtext("mutatedClass").endswith(".OrderService")
+                       and m.findtext("lineNumber") == str(check_line) and "negated conditional" in m.findtext("description")]
+              ok = any(m.get("status") == "KILLED" and "nonCashPayment" in (m.findtext("killingTest") or "") for m in cands)
+              lines += ["", "### Sanity check",
+                        f"Negating the CASH check (`OrderService.java:{check_line}`) must be killed by "
+                        f"`createOrder_nonCashPayment_rejectedWithBadRequest`: "
+                        + ("✅ killed by that test" if ok else f"❌ not killed (statuses: {[m.get('status') for m in cands] or 'mutant not generated'})")]
+              if not ok:
+                  problems.append(f"CASH-check mutant at OrderService.java:{check_line} was not killed by its test.")
+
           lines += ["", "Full HTML report: download the `pitest-report` artifact of this run."]
 
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
@@ -113,6 +187,10 @@ jobs:
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:
               f.write(f"score={score}\nsurvivors={len(survivors)}\n")
           print(f"Mutation score {score}%, {len(survivors)} surviving/uncovered mutants")
+          for p in problems:
+              print(f"::error::{p}")
+          if problems:
+              raise SystemExit(1)
           PY
 
       - name: Upload PIT report
