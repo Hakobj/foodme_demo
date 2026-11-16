@@ -1,0 +1,74 @@
+name: Claude Code Review
+
+# Automatic code review on every PR into main. Claude reviews the diff with the
+# repo's own review checklists (.claude/skills/backend-review, frontend-review)
+# and posts inline comments plus one summary comment. Review only, no edits.
+# Requires the Claude GitHub App and the ANTHROPIC_API_KEY repository secret.
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+
+concurrency:
+  group: claude-code-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
+      id-token: write
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Claude code review
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Built-in token: lets this workflow run in the PR that adds it (comments appear as github-actions[bot]).
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+            BASE: origin/${{ github.base_ref }}
+
+            You are reviewing this pull request. Review only: do not edit files, commit or push.
+
+            1. Get the change set with `gh pr diff ${{ github.event.pull_request.number }}` and
+               `gh pr view ${{ github.event.pull_request.number }}`. Read every changed file in full,
+               plus the callers and callees of changed code.
+            2. Apply the repo's own review checklists:
+               - Backend (apps/backend/**): .claude/skills/backend-review/SKILL.md and .claude/rules/backend.md
+               - Storefront (apps/web/**): .claude/skills/frontend-review/SKILL.md and .claude/rules/web.md
+               - Back office (apps/admin/**): .claude/skills/frontend-review/SKILL.md and .claude/rules/admin.md
+               - Python test suite (tests-python/**, clients/**, pages/**, support/**): CLAUDE.md and TESTING.md
+               Skip the "run the tests/build" steps of those skills; CI runs them separately.
+            3. Follow CLAUDE.md. Code marked `// FM-BUG-NN` or `// FM-FLAKE-NN` is seeded on purpose:
+               do not report it as a new defect unless this PR introduces, changes or removes it.
+               The hard-coded secrets, open CORS and open /mcp endpoint are also deliberate.
+            4. Report only real problems: correctness bugs, security issues, broken contracts between
+               backend and frontends, data/migration mistakes, missing error handling, and missing
+               tests for new behavior. No style nitpicks a linter would catch.
+
+            Output:
+            - For each finding, post an inline comment on the exact line with
+              `mcp__github_inline_comment__create_inline_comment`: severity (blocker / major / minor),
+              what goes wrong, a concrete failing scenario, and a suggested fix.
+            - Then post ONE summary comment with `gh pr comment`: a verdict
+              (Approve / Approve with comments / Request changes), a table of findings
+              (severity, file:line, one-line summary), and what you checked but found fine.
+            - If there are no findings, say so in the summary comment and list what you checked.
+          claude_args: |
+            --max-turns 40
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Read,Glob,Grep"
