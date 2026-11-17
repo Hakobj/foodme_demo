@@ -50,6 +50,8 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # Also run when the push came from @claude fixing the PR (these jobs only comment, so no loop).
           allowed_bots: "claude"
+          # Temporary: print the full Claude output in the log to diagnose auth errors.
+          show_full_output: true
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
