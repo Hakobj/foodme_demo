@@ -205,7 +205,7 @@ jobs:
         if: github.event_name == 'pull_request' && steps.summary.outputs.survivors != '0'
         uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # Built-in token: lets this workflow run in the PR that adds it (comments appear as github-actions[bot]).
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # Also run when the push came from @claude fixing the PR (these jobs only comment, so no loop).

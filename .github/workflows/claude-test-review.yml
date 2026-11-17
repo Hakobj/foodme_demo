@@ -4,7 +4,7 @@ name: Claude Test Review
 # meaningful, will the tests be flaky, do they follow the repo's test
 # conventions, and which behavior changed in the PR is still untested.
 # Runs only when test code (or the test helpers it depends on) changes.
-# Requires the Claude GitHub App and the ANTHROPIC_API_KEY repository secret.
+# Requires the Claude GitHub App and the CLAUDE_CODE_OAUTH_TOKEN repository secret.
 on:
   pull_request:
     branches: [main]
@@ -45,7 +45,7 @@ jobs:
       - name: Claude test review
         uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # Built-in token: lets this workflow run in the PR that adds it (comments appear as github-actions[bot]).
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # Also run when the push came from @claude fixing the PR (these jobs only comment, so no loop).
