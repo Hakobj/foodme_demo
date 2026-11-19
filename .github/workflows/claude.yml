@@ -2,7 +2,7 @@ name: Claude Code
 
 # Mention @claude in an issue, a PR comment, a PR review or a review comment
 # to have Claude answer or make changes. Requires the Claude GitHub App on
-# this repo and the ANTHROPIC_API_KEY repository secret.
+# this repo and the CLAUDE_CODE_OAUTH_TOKEN repository secret.
 on:
   issue_comment:
     types: [created]
@@ -36,6 +36,6 @@ jobs:
       - name: Run Claude Code
         uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           additional_permissions: |
             actions: read

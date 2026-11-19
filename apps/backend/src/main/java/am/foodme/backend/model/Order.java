@@ -78,4 +78,8 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderDish> orderDishList;
+
+    /** The customer's rating of this order, or null while it hasn't been rated. */
+    @OneToOne(mappedBy = "order", fetch = FetchType.LAZY)
+    private OrderReview review;
 }

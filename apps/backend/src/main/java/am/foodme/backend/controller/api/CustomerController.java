@@ -1,12 +1,14 @@
 package am.foodme.backend.controller.api;
 
+import am.foodme.backend.dto.CreateOrderReviewRequestDto;
 import am.foodme.backend.dto.CustomerProfileDto;
 import am.foodme.backend.dto.OrderListResponseDto;
-import am.foodme.backend.dto.PromoApplyRequestDto;
-import am.foodme.backend.dto.PromoApplyResponseDto;
+import am.foodme.backend.dto.OrderReviewDto;
 import am.foodme.backend.service.CustomerAuthService;
+import am.foodme.backend.service.OrderReviewService;
 import am.foodme.backend.service.OrderService;
 import am.foodme.backend.utils.ControllerUtil;
+import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,10 +23,13 @@ public class CustomerController {
 
     private final CustomerAuthService customerAuthService;
     private final OrderService orderService;
+    private final OrderReviewService orderReviewService;
 
-    public CustomerController(CustomerAuthService customerAuthService, OrderService orderService) {
+    public CustomerController(CustomerAuthService customerAuthService, OrderService orderService,
+                              OrderReviewService orderReviewService) {
         this.customerAuthService = customerAuthService;
         this.orderService = orderService;
+        this.orderReviewService = orderReviewService;
     }
 
     @GetMapping("/me")
@@ -39,8 +44,10 @@ public class CustomerController {
         return orderService.listForCustomer(authentication.getName(), page, size);
     }
 
-    @PostMapping("/promo/apply")
-    public PromoApplyResponseDto applyPromo(@RequestBody PromoApplyRequestDto request, Authentication authentication) {
-        return orderService.applyPromo(request, authentication.getName());
+    @PostMapping("/orders/{number}/review")
+    public OrderReviewDto reviewOrder(@PathVariable String number,
+                                      @Valid @RequestBody CreateOrderReviewRequestDto request,
+                                      Authentication authentication) {
+        return orderReviewService.createReview(number, request, authentication.getName());
     }
 }

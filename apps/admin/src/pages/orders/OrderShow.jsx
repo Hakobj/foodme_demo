@@ -19,10 +19,43 @@ import {
     DialogActions,
     TextField,
     Stack,
+    Rating,
 } from '@mui/material';
 import { OrderStatus, OrderStatusColors, OrderStatusTransitions } from '../../constants/OrderStatus.jsx';
 import { updateOrderStatus } from '../../api/order-api.js';
 import BackButton from '../../layout/BackButton.jsx';
+
+// SCRUM-6 R20-R22: delivered orders show the customer's review, or "No review yet".
+const CustomerReview = ({ record }) => {
+    if (record.status !== OrderStatus.DELIVERED) return null;
+    const review = record.review;
+
+    return (
+        <Box component="section" aria-labelledby="customer-review-heading">
+            <Divider sx={{ my: 2 }} />
+            <Typography id="customer-review-heading" variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                Customer review
+            </Typography>
+            {review ? (
+                <>
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                        <Rating value={review.rating} readOnly aria-label={`Rated ${review.rating} out of 5`} />
+                        <Typography variant="body2" color="text.secondary">
+                            {new Date(review.createdAt).toLocaleString()}
+                        </Typography>
+                    </Stack>
+                    {review.comment && (
+                        <Typography sx={{ mt: 1, whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
+                            {review.comment}
+                        </Typography>
+                    )}
+                </>
+            ) : (
+                <Typography color="text.secondary">No review yet</Typography>
+            )}
+        </Box>
+    );
+};
 
 const OrderDetails = () => {
     const record = useRecordContext();
@@ -163,6 +196,8 @@ const OrderDetails = () => {
                     <Typography variant="h6">Total</Typography>
                     <Typography variant="h6">{record.totalPrice} AMD</Typography>
                 </Stack>
+
+                <CustomerReview record={record} />
 
                 {availableTransitions.length > 0 && (
                     <>

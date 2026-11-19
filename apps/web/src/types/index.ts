@@ -208,6 +208,18 @@ export interface FullOrderDto {
   promoCode: string | null;
   discount: number | null;
   createdAt: string;
+  review?: OrderReviewDto | null;
+}
+
+export interface OrderReviewDto {
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+}
+
+export interface CreateOrderReviewRequest {
+  rating: number;
+  comment?: string;
 }
 
 export interface ApiError {

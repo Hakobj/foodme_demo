@@ -2,6 +2,8 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.3.4'
     id 'io.spring.dependency-management' version '1.1.6'
+    // Mutation testing: ./gradlew pitest -> build/reports/pitest (see .github/workflows/mutation-testing.yml)
+    id 'info.solidsoft.pitest' version '1.15.0'
 }
 
 group = 'am.foodme'
@@ -58,4 +60,24 @@ tasks.named('test') {
     testLogging {
         events 'passed', 'failed', 'skipped'
     }
+}
+
+pitest {
+    junit5PluginVersion = '1.2.1'
+    targetClasses = ['am.foodme.backend.*']
+    // Mutate logic, not wiring or data holders.
+    excludedClasses = [
+        'am.foodme.backend.FoodmeBackendApplication',
+        'am.foodme.backend.config.*',
+        'am.foodme.backend.dto.*',
+        'am.foodme.backend.model.*',
+        'am.foodme.backend.observability.*',
+    ]
+    // FM-FLAKE tests are order-dependent on purpose; skip any that fail on the
+    // unmutated code instead of aborting the whole run.
+    skipFailingTests = true
+    threads = 2
+    timeoutConstInMillis = 10000
+    outputFormats = ['XML', 'HTML']
+    timestampedReports = false
 }

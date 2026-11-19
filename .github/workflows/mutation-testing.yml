@@ -1,0 +1,250 @@
+name: Mutation Testing
+
+# Mutation testing of the Spring Boot backend with PIT (pitest.org).
+# PIT makes small changes ("mutants") to the production code, e.g. flips `>` to `>=`
+# or removes a call, and re-runs the JUnit tests. A mutant the tests don't catch
+# ("survived") points to a missing or weak assertion.
+#
+# - Runs on PRs that touch apps/backend, weekly on main, and on demand.
+# - Publishes the mutation score in the job summary and the HTML report as an artifact.
+# - On PRs, Claude reads the surviving mutants and comments with the tests that would kill them.
+#
+# PIT config lives in apps/backend/build.gradle (`pitest { ... }`). Run locally:
+#   cd apps/backend && ./gradlew pitest   ->  build/reports/pitest/index.html
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/backend/**"
+      - ".github/workflows/mutation-testing.yml"
+  schedule:
+    - cron: "0 5 * * 1" # Mondays 05:00 UTC
+  workflow_dispatch:
+    inputs:
+      threshold:
+        description: "Fail if the mutation score (%) is below this (0 = report only)"
+        required: false
+        default: "0"
+
+concurrency:
+  group: mutation-testing-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Control experiment, independent of PIT: plant a real bug on a line that a
+  # test checks and make sure that test then fails. If it doesn't, the tests
+  # (and therefore any "killed" mutant) can't be trusted.
+  planted-bug-check:
+    name: Planted bug is caught by tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: apps/backend
+    env:
+      SRC: src/main/java/am/foodme/backend/service/OrderService.java
+      TEST: am.foodme.backend.OrderControllerTest.createOrder_nonCashPayment_rejectedWithBadRequest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Control - test passes on the real code
+        run: |
+          chmod +x gradlew
+          ./gradlew test --no-daemon --tests "$TEST"
+
+      - name: Plant bug - negate the CASH payment check
+        run: |
+          grep -q 'if (!"CASH".equals(orderDto.getPaymentType()))' "$SRC" || { echo "::error::CASH check not found in $SRC; update this job"; exit 1; }
+          sed -i 's/if (!"CASH".equals(orderDto.getPaymentType()))/if ("CASH".equals(orderDto.getPaymentType()))/' "$SRC"
+          git diff --unified=0 -- "$SRC"
+
+      - name: Experiment - the same test must now fail
+        run: |
+          if ./gradlew test --no-daemon --tests "$TEST"; then
+            echo "::error::The planted bug was NOT caught: $TEST still passes. Mutation results can't be trusted."
+            exit 1
+          fi
+          echo "✅ Planted bug caught: $TEST failed as expected." | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Restore code
+        if: always()
+        run: git checkout -- "$SRC"
+
+  pitest:
+    name: PIT mutation testing (backend)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
+      id-token: write
+    env:
+      THRESHOLD: ${{ github.event.inputs.threshold || '0' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run PIT
+        working-directory: apps/backend
+        run: |
+          chmod +x gradlew
+          ./gradlew pitest --no-daemon
+
+      - name: Summarize results
+        id: summary
+        run: |
+          python3 - <<'PY'
+          import os, xml.etree.ElementTree as ET
+          from collections import Counter, defaultdict
+
+          path = "apps/backend/build/reports/pitest/mutations.xml"
+          muts = ET.parse(path).getroot().findall("mutation")
+          status = Counter(m.get("status") for m in muts)
+          counted = [m for m in muts if m.get("status") not in ("NON_VIABLE", "RUN_ERROR")]
+          detected = sum(1 for m in counted if m.get("detected") == "true")
+          score = round(100 * detected / len(counted), 1) if counted else 0.0
+          survivors = [m for m in muts if m.get("status") in ("SURVIVED", "NO_COVERAGE")]
+
+          per_class = defaultdict(Counter)
+          for m in counted:
+              per_class[m.findtext("mutatedClass")][m.get("status")] += 1
+
+          lines = [
+              "## 🧬 Mutation testing (PIT) - backend",
+              f"**Mutation score: {score}%** ({detected} of {len(counted)} mutants killed)",
+              "",
+              "| Status | Count |", "|---|---|",
+              *[f"| {s} | {n} |" for s, n in status.most_common()],
+              "",
+              "### Weakest classes",
+              "| Class | Killed | Survived | No coverage |", "|---|---|---|---|",
+          ]
+          weakest = sorted(per_class.items(), key=lambda kv: -(kv[1]["SURVIVED"] + kv[1]["NO_COVERAGE"]))[:10]
+          for cls, c in weakest:
+              lines.append(f"| `{cls.replace('am.foodme.backend.', '')}` | {c['KILLED'] + c['TIMED_OUT']} | {c['SURVIVED']} | {c['NO_COVERAGE']} |")
+          # Proof that "killed" means "a real test failed": show which test killed each mutant.
+          killed = [m for m in muts if m.get("status") == "KILLED" and m.findtext("killingTest")]
+          lines += ["", "### Sample of killed mutants (and the test that failed)",
+                    "| Class:line | Mutation | Killed by |", "|---|---|---|"]
+          for m in killed[:10]:
+              test = m.findtext("killingTest")
+              test = test.split("[method:")[-1].split("(")[0] if "[method:" in test else test
+              lines.append(f"| `{m.findtext('mutatedClass').rsplit('.', 1)[-1]}:{m.findtext('lineNumber')}` | {m.findtext('description')} | `{test}` |")
+
+          # Sanity checks: PIT must kill something, and a known-tested line must be killed by its test.
+          problems = []
+          if not killed:
+              problems.append("PIT killed 0 mutants: tests are not being run against mutants (misconfiguration).")
+          src = "apps/backend/src/main/java/am/foodme/backend/service/OrderService.java"
+          src_lines = open(src, encoding="utf-8").read().splitlines()
+          cash_line = next((i for i, l in enumerate(src_lines, 1) if 'Only CASH payment is supported' in l), None)
+          if cash_line:
+              check_line = cash_line - 1  # the `if (!"CASH".equals(...))` line
+              cands = [m for m in muts if m.findtext("mutatedClass").endswith(".OrderService")
+                       and m.findtext("lineNumber") == str(check_line) and "negated conditional" in m.findtext("description")]
+              ok = any(m.get("status") == "KILLED" and "nonCashPayment" in (m.findtext("killingTest") or "") for m in cands)
+              lines += ["", "### Sanity check",
+                        f"Negating the CASH check (`OrderService.java:{check_line}`) must be killed by "
+                        f"`createOrder_nonCashPayment_rejectedWithBadRequest`: "
+                        + ("✅ killed by that test" if ok else f"❌ not killed (statuses: {[m.get('status') for m in cands] or 'mutant not generated'})")]
+              if not ok:
+                  problems.append(f"CASH-check mutant at OrderService.java:{check_line} was not killed by its test.")
+
+          lines += ["", "Full HTML report: download the `pitest-report` artifact of this run."]
+
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
+              f.write("\n".join(lines) + "\n")
+
+          # Compact list of surviving mutants for the Claude step.
+          os.makedirs(".ci-context", exist_ok=True)
+          with open(".ci-context/surviving-mutants.md", "w", encoding="utf-8") as f:
+              f.write(f"Mutation score: {score}% ({detected}/{len(counted)})\n\n")
+              f.write("| Status | Source file | Line | Method | Mutation |\n|---|---|---|---|---|\n")
+              for m in survivors:
+                  pkg = m.findtext("mutatedClass").rsplit(".", 1)[0].replace(".", "/")
+                  f.write(f"| {m.get('status')} | apps/backend/src/main/java/{pkg}/{m.findtext('sourceFile')} | "
+                          f"{m.findtext('lineNumber')} | {m.findtext('mutatedMethod')} | {m.findtext('description')} |\n")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"score={score}\nsurvivors={len(survivors)}\n")
+          print(f"Mutation score {score}%, {len(survivors)} surviving/uncovered mutants")
+          for p in problems:
+              print(f"::error::{p}")
+          if problems:
+              raise SystemExit(1)
+          PY
+
+      - name: Upload PIT report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pitest-report
+          path: apps/backend/build/reports/pitest/
+          retention-days: 14
+
+      - name: Claude explains surviving mutants
+        if: github.event_name == 'pull_request' && steps.summary.outputs.survivors != '0'
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Built-in token: lets this workflow run in the PR that adds it (comments appear as github-actions[bot]).
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Also run when the push came from @claude fixing the PR (these jobs only comment, so no loop).
+          allowed_bots: "claude"
+          # Temporary: print the full Claude output in the log to diagnose auth errors.
+          show_full_output: true
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            PIT mutation testing ran on the backend. The surviving and uncovered mutants are listed in
+            `.ci-context/surviving-mutants.md` (mutation score ${{ steps.summary.outputs.score }}%).
+            Do not edit files, commit or push.
+
+            1. Get the PR diff with `gh pr diff ${{ github.event.pull_request.number }}`. Focus on mutants in
+               code this PR adds or changes; mention others only briefly.
+            2. For each relevant mutant, read the source line and the existing tests in
+               apps/backend/src/test/java, and explain in one sentence what bug the mutant represents and
+               why no test notices it.
+            3. Group mutants that one test would kill. For each group, propose a concrete JUnit 5 + MockMvc
+               test in the style of the existing tests (@SpringBootTest, @AutoConfigureMockMvc,
+               @ActiveProfiles("test"), seed data in src/test/resources/data.sql): test name, setup,
+               and the exact assertion that kills the mutant.
+            4. Follow CLAUDE.md: `FM-BUG-NN` code is seeded on purpose. If a mutant sits on a seeded bug,
+               say so instead of proposing a test that would lock in the bug.
+
+            Post ONE comment with `gh pr comment`:
+            ## 🧬 Mutation testing: ${{ steps.summary.outputs.score }}%
+            ### Surviving mutants in this PR (table: file:line | mutation | why it survives)
+            ### Tests to add (grouped, with code)
+            ### Other survivors (one line per class)
+          claude_args: |
+            --max-turns 30
+            --allowedTools "Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(git diff:*),Read,Glob,Grep,Write,Bash(cat:*),Bash(ls:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(jq:*),Bash(grep:*),Bash(find:*)"
+            --append-system-prompt "To post a PR comment, save the Markdown with the Write tool to .ci-context/comment.md and run: gh pr comment <PR number> --body-file .ci-context/comment.md. Never pass long Markdown inline with --body. Writing files here is only for building comments: the job cannot commit or push."
+
+      - name: Enforce threshold
+        if: env.THRESHOLD != '0'
+        env:
+          SCORE: ${{ steps.summary.outputs.score }}
+        run: |
+          python3 -c "import os,sys; s=float(os.environ['SCORE']); t=float(os.environ['THRESHOLD']); print(f'score {s}% / threshold {t}%'); sys.exit(s < t)"
