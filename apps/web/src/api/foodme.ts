@@ -2,6 +2,7 @@ import { apiClient } from "@/api/client";
 import type {
   ChefsPageDto,
   ChefTagOrderWithDishTagDto,
+  CreateOrderReviewRequest,
   CustomerAuthDto,
   CustomerLoginRequest,
   CustomerProfile,
@@ -14,6 +15,7 @@ import type {
   OrderCreateResponseDto,
   OrderDto,
   OrderListResponseDto,
+  OrderReviewDto,
 } from "@/types";
 
 export const foodmeApi = {
@@ -31,6 +33,9 @@ export const foodmeApi = {
   getDeliveryPrice: (payload: DeliveryPriceRequest) =>
     apiClient.post<DeliveryPriceResponse>("/api/order/delivery-price", payload),
 
+  applyPromo: (payload: PromoApplyRequest) =>
+    apiClient.post<PromoApplyResponse>("/api/customer/promo/apply", payload),
+
   createOrder: (payload: OrderDto) =>
     apiClient.post<OrderCreateResponseDto>("/api/order", payload),
 
@@ -46,4 +51,7 @@ export const foodmeApi = {
 
   getMyOrders: (page = 0, size = 20) =>
     apiClient.get<OrderListResponseDto>(`/api/customer/orders?page=${page}&size=${size}`),
+
+  reviewOrder: (number: string, payload: CreateOrderReviewRequest) =>
+    apiClient.post<OrderReviewDto>(`/api/customer/orders/${encodeURIComponent(number)}/review`, payload),
 };

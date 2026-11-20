@@ -1,0 +1,17 @@
+#-------------------------------------------------------------------------------#
+#     Qodana config for the Spring Boot backend (used by the CI "Qodana" job)    #
+#     Docs: https://www.jetbrains.com/help/qodana/qodana-yaml.html               #
+#-------------------------------------------------------------------------------#
+version: "1.0"
+
+# Free JVM linter. Keep its version in line with JetBrains/qodana-action in the workflow.
+linter: jetbrains/qodana-jvm-community:2026.2
+
+projectJDK: "17"
+
+profile:
+  name: qodana.starter
+
+# Uncomment to fail the job (and block the PR) when Qodana finds more problems than this.
+# With pr-mode: false the whole backend is scanned, so start from the current count or use a baseline.
+# failThreshold: 0

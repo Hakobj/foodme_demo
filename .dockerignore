@@ -7,3 +7,6 @@
 .git
 .idea
 **/*.log
+
+# Python test suite venv
+.venv

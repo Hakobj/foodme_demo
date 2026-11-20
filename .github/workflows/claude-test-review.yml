@@ -1,0 +1,97 @@
+name: Claude Test Review
+
+# Reviews the quality of tests added or changed in a PR: are the assertions
+# meaningful, will the tests be flaky, do they follow the repo's test
+# conventions, and which behavior changed in the PR is still untested.
+# Runs only when test code (or the test helpers it depends on) changes.
+# Requires the Claude GitHub App and the CLAUDE_CODE_OAUTH_TOKEN repository secret.
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "tests-python/**"
+      - "clients/**"
+      - "pages/**"
+      - "support/**"
+      - "pytest.ini"
+      - "apps/backend/src/test/**"
+      - "apps/web/e2e/**"
+      - "apps/admin/e2e/**"
+      - "apps/**/*.test.*"
+      - "apps/**/*.spec.*"
+      - "apps/**/playwright.config.*"
+
+concurrency:
+  group: claude-test-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  test-review:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
+      id-token: write
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Claude test review
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Built-in token: lets this workflow run in the PR that adds it (comments appear as github-actions[bot]).
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Also run when the push came from @claude fixing the PR (these jobs only comment, so no loop).
+          allowed_bots: "claude"
+          # Temporary: print the full Claude output in the log to diagnose auth errors.
+          show_full_output: true
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Review the TESTS in this pull request as a senior QA engineer. Review only: do not edit
+            files, commit or push, and do not run the tests (CI does that).
+
+            1. Get the change set with `gh pr diff ${{ github.event.pull_request.number }}`. Split it into
+               test code and production code. Read changed tests in full, and the production code they exercise.
+            2. Judge the tests against the repo's own conventions:
+               - Python suite (tests-python/, page objects in pages/, API clients in clients/, helpers in support/):
+                 TESTING.md, pytest.ini markers (unit / integration / e2e / api / web / admin),
+                 .claude/skills/write-unit-tests, write-integration-tests, write-e2e-tests
+               - Backend JUnit (apps/backend/src/test): .claude/rules/backend.md, .claude/rules/db-testing.md
+               - Playwright TS (apps/web/e2e, apps/admin/e2e): .claude/rules/web-testing.md, admin-testing.md
+            3. Check each changed test for:
+               - Assertions: does it assert the behavior under test (values, state, side effects), or only
+                 status codes / "is visible"? Would it still pass if the feature were broken?
+               - Flakiness: fixed sleeps, timing, order dependence, shared mutable data, hard-coded IDs or
+                 order numbers, dates/time zones, reliance on seed data another test changes, brittle selectors.
+               - Isolation and data: own test data via builders/fixtures, cleanup, no cross-test leakage.
+               - Structure: one behavior per test, clear names, correct markers, page objects/clients used
+                 instead of raw selectors/requests, no duplicated setup that belongs in a fixture.
+               - Negative and edge cases: validation errors, auth (401/403), boundaries, empty states.
+            4. Coverage gaps: list behavior added or changed by the production code in this PR that no test
+               covers, and say which test level (unit / integration / e2e) fits each gap best.
+            5. Follow CLAUDE.md: tests marked `FM-FLAKE-NN` and code marked `FM-BUG-NN` are seeded on purpose.
+               Don't report them as new problems unless this PR changes them; if a PR fixes one, check it
+               keeps the marker and adds `FIX: <reason>`.
+
+            Output:
+            - Inline comments with `mcp__github_inline_comment__create_inline_comment` on the exact lines,
+              each with severity (major / minor), the problem, and a concrete improvement (code snippet if short).
+            - ONE summary comment with `gh pr comment`:
+              ## Test review
+              **Verdict:** Good / Needs work / Insufficient
+              A table: test file | tests changed | main issue.
+              ### Flakiness risks
+              ### Untested behavior (with suggested test level)
+              ### What's done well
+          claude_args: |
+            --max-turns 40
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(git diff:*),Bash(git log:*),Read,Glob,Grep"
