@@ -1,7 +1,0 @@
-Header: page text recorded via Playwright snapshots, https://foodme-hakobjulfayan.onrender.com, UTC times
-[2026-11-20T10:44:38Z] Home: Account, Hakob Julfayan ; Cart badge: "0"
-[2026-11-20T10:44:43Z] /checkout before cleaning: Nothing to check out / Your cart is empty. Browse chefs and add something delicious. (no items, no promo, no discount line)
-[2026-11-20T10:45:06Z] /checkout after adding dish: Signed in as Hakob Julfayan ; Delivery method "Delivery To your door" [pressed] ; 1× Chicken curry rice & vegetables 3,000 AMD ; Subtotal 3,000 AMD ; Delivery 500 AMD ; Add 2,000 AMD more for free delivery. ; Total 3,500 AMD
-[2026-11-20T10:45:18Z] After first apply SAVE10: SAVE10 applied: 10% off ; Subtotal 3,000 AMD ; Delivery 500 AMD ; Discount (SAVE10) −350 AMD ; Total 3,150 AMD
-[2026-11-20T10:45:31Z] After Remove promo code: Subtotal 3,000 AMD ; Delivery 500 AMD ; Total 3,500 AMD (Apply disabled, no discount line)
-[2026-11-20T10:45:37Z] After second apply SAVE10: SAVE10 applied: 10% off ; Subtotal 3,000 AMD ; Delivery 500 AMD ; Discount (SAVE10) −350 AMD ; Total 3,150 AMD

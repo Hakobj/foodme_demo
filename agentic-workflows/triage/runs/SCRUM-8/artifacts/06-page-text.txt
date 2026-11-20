@@ -1,7 +1,0 @@
-Playwright, checkout summary text (UTC). Account: signed-in customer.
-[initial state ~10:50:12Z] 1x Chicken curry rice & vegetables 3,000 AMD; no code applied; Delivery selected; Subtotal 3,000 AMD | Delivery 500 AMD | Total 3,500 AMD
-[Case A pickup, 2026-11-20T10:50:27.975Z] Your items 1x Chicken curry rice & vegetables 3,000 AMD Promo code Apply SAVE10 applied: 10% off Subtotal 3,000 AMD Delivery Free Discount (SAVE10) −300 AMD Total 2,700 AMD
-[Case A delivery, 2026-11-20T10:50:45.776Z] SAVE10 applied: 10% off Subtotal 3,000 AMD Delivery 500 AMD Discount (SAVE10) −350 AMD Add 2,000 AMD more for free delivery. Total 3,150 AMD
-[cart before Case B 10:51:16Z] 1x Chicken curry rice & vegetables 3,000 AMD, 1x Dragon Roll 4,000 AMD, Subtotal 7,000 AMD Delivery Free (curry then removed on /chef/24 cart)
-[Case B, 2026-11-20T10:51:35.283Z] 1x Dragon Roll 4,000 AMD SAVE10 applied: 10% off Subtotal 4,000 AMD Delivery 500 AMD Discount (SAVE10) −450 AMD Add 1,000 AMD more for free delivery. Total 4,050 AMD
-Note: the delivery method button is labelled "Takeaway / Pick up". Dish chosen: "Dragon Roll" 4,000 AMD, from /chef/24. Cart left as 1 x Dragon Roll, no promo code.

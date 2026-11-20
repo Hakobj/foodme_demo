@@ -1,7 +1,0 @@
-{"header":"Playwright network capture, https://foodme-hakobjulfayan.onrender.com/checkout, 2026-11-20T10:50Z-10:51Z (Authorization header redacted)",
-"applies":[
-{"id":"A-pickup-3000","utc":"2026-11-20T10:50:25Z","request":"POST /api/customer/promo/apply","status":200,"requestBody":{"code":"SAVE10","chefId":24,"subtotal":3000,"deliveryMethod":"TAKEAWAY"},"responseBody":{"code":"SAVE10","status":"APPLIED","percent":10,"missingAmount":null,"discount":300.0,"deliveryPrice":0.0,"total":2700.0}},
-{"id":"A-delivery-3000","utc":"2026-11-20T10:50:43Z","request":"POST /api/customer/promo/apply","status":200,"requestBody":{"code":"SAVE10","chefId":24,"subtotal":3000,"deliveryMethod":"DELIVERY"},"responseBody":{"code":"SAVE10","status":"APPLIED","percent":10,"missingAmount":null,"discount":350.0,"deliveryPrice":500.0,"total":3150.0}},
-{"id":"B-delivery-4000","utc":"2026-11-20T10:51:33Z","request":"POST /api/customer/promo/apply","status":200,"requestBody":{"code":"SAVE10","chefId":24,"subtotal":4000,"deliveryMethod":"DELIVERY"},"responseBody":{"code":"SAVE10","status":"APPLIED","percent":10,"missingAmount":null,"discount":450.0,"deliveryPrice":500.0,"total":4050.0}}
-],
-"requestLists":["185 GET /api/customer/me 200","188 GET /api/chef/24 200","189 POST /api/order/delivery-price 200","190 POST /api/order/delivery-price 200","191 POST /api/customer/promo/apply 200","192 POST /api/customer/promo/apply 200","(after reload) 508 GET /api/customer/me 200","509 GET /api/chef/24 200","510 POST /api/order/delivery-price 200","511 POST /api/customer/promo/apply 200"]}

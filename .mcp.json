@@ -28,20 +28,6 @@
       "type": "stdio",
       "command": "cmd",
       "args": ["/c", "agentsecrets", "mcp", "serve"]
-    },
-    "glitchtip": {
-      "type": "stdio",
-      "command": "cmd",
-      "args": ["/c", "npx", "-y", "mcp-glitchtip"],
-      "env": {
-        "GLITCHTIP_TOKEN": "${GLITCHTIP_TOKEN:-}",
-        "GLITCHTIP_ORGANIZATION": "${GLITCHTIP_ORGANIZATION:-foodme}",
-        "GLITCHTIP_BASE_URL": "${GLITCHTIP_BASE_URL:-https://app.glitchtip.com}"
-      }
-    },
-    "grafana": {
-      "type": "http",
-      "url": "${GRAFANA_MCP_URL:-https://foodme-monitoring.onrender.com/mcp}"
     }
   }
 }

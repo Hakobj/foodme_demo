@@ -1,3 +1,0 @@
-problem: { approved: true, by: "Hakob Julfayan", at: "2026-11-20T10:43:21Z", note: "Confirmed as stated; repro is read-only (no order placement)" }
-root_cause: { approved: true, by: "Hakob Julfayan", at: "2026-11-20T11:02:51Z", candidate: H-1, note: "Approve and write to Jira (comment as shown in the preview; labels triaged, rc-backend)" }
-jira: { comment_id: "10001", labels: [bug, checkout, foodme, promo-codes, rc-backend, triaged], at: "2026-11-20T11:03:01Z" }
