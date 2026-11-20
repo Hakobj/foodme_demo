@@ -1,0 +1,19 @@
+# LogQL: {app="foodme-backend"} |~ "promo|delivery-price" | datasource uid=loki | range 2026-11-20T10:44:00Z - 2026-11-20T11:05:00Z | direction forward | limit 100 | query time 2026-11-20T10:56:12Z
+# Result metadata: linesReturned=13 resultsTruncated=false totalLinesScanned=40
+# Note: req.headers / res.headers of the HTTP lines omitted here (not relevant; contain IPs/auth markers). All other text is verbatim.
+
+10:45:07Z am.foodme.backend.observability.http | HTTP POST /api/order/delivery-price -> 200 (1215ms) | req.body: {"chefId":24,"subtotal":3000,"deliveryMethod":"DELIVERY"} | res.body: {"deliveryPrice":500.0,"freeDeliveryFrom":5000.0}
+10:45:18Z am.foodme.backend.service.OrderService | promo.applied code=SAVE10 status=APPLIED discount=350.0
+10:45:18Z am.foodme.backend.observability.http | HTTP POST /api/customer/promo/apply -> 200 (860ms) | req.body: {"code":"SAVE10","chefId":24,"subtotal":3000,"deliveryMethod":"DELIVERY"} | res.body: {"code":"SAVE10","status":"APPLIED","percent":10,"missingAmount":null,"discount":350.0,"deliveryPrice":500.0,"total":3150.0}
+10:50:13Z am.foodme.backend.observability.http | HTTP POST /api/order/delivery-price -> 200 (981ms) | req.body: {"chefId":24,"subtotal":3000,"deliveryMethod":"DELIVERY"} | res.body: {"deliveryPrice":500.0,"freeDeliveryFrom":5000.0}
+10:50:18Z am.foodme.backend.observability.http | HTTP POST /api/order/delivery-price -> 200 (1190ms) | req.body: {"chefId":24,"subtotal":3000,"deliveryMethod":"TAKEAWAY"} | res.body: {"deliveryPrice":0.0,"freeDeliveryFrom":5000.0}
+10:50:25Z am.foodme.backend.service.OrderService | promo.applied code=SAVE10 status=APPLIED discount=300.0
+10:50:25Z am.foodme.backend.observability.http | HTTP POST /api/customer/promo/apply -> 200 (353ms) | req.body: {"code":"SAVE10","chefId":24,"subtotal":3000,"deliveryMethod":"TAKEAWAY"} | res.body: {"code":"SAVE10","status":"APPLIED","percent":10,"missingAmount":null,"discount":300.0,"deliveryPrice":0.0,"total":2700.0}
+10:50:43Z am.foodme.backend.service.OrderService | promo.applied code=SAVE10 status=APPLIED discount=350.0
+10:50:43Z am.foodme.backend.observability.http | HTTP POST /api/customer/promo/apply -> 200 (1280ms) | req.body: {"code":"SAVE10","chefId":24,"subtotal":3000,"deliveryMethod":"DELIVERY"} | res.body: {"code":"SAVE10","status":"APPLIED","percent":10,"missingAmount":null,"discount":350.0,"deliveryPrice":500.0,"total":3150.0}
+10:51:13Z am.foodme.backend.observability.http | HTTP POST /api/order/delivery-price -> 200 (1472ms) | req.body: {"chefId":24,"subtotal":7000,"deliveryMethod":"DELIVERY"} | res.body: {"deliveryPrice":0.0,"freeDeliveryFrom":5000.0}
+10:51:26Z am.foodme.backend.observability.http | HTTP POST /api/order/delivery-price -> 200 (389ms) | req.body: {"chefId":24,"subtotal":4000,"deliveryMethod":"DELIVERY"} | res.body: {"deliveryPrice":500.0,"freeDeliveryFrom":5000.0}
+10:51:31Z am.foodme.backend.service.OrderService | promo.applied code=SAVE10 status=APPLIED discount=450.0
+10:51:31Z am.foodme.backend.observability.http | HTTP POST /api/customer/promo/apply -> 200 (620ms) | req.body: {"code":"SAVE10","chefId":24,"subtotal":4000,"deliveryMethod":"DELIVERY"} | res.body: {"code":"SAVE10","status":"APPLIED","percent":10,"missingAmount":null,"discount":450.0,"deliveryPrice":500.0,"total":4050.0}
+
+# Count per logger (13 lines): am.foodme.backend.observability.http = 9 (5 delivery-price + 4 promo/apply); am.foodme.backend.service.OrderService = 4 (promo.applied)

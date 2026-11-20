@@ -1,0 +1,24 @@
+# commit ff70db0a38bacefa34b0cbf6ff3a8b3e4ceb17dd (perf(backend): cache applied promo per customer (KAN-27)); read via git show, UTC 2026-11-20
+## apps/backend/src/main/java/am/foodme/backend/service/OrderService.java lines 196-217
+   196	        double deliveryPrice = 0.0;
+   197	        if ("DELIVERY".equals(orderDto.getDeliveryMethod())) {
+   198	            DeliveryPriceRequestDto priceRequest = new DeliveryPriceRequestDto(chef.getId(), subtotal, "DELIVERY");
+   199	            deliveryPrice = calculateDeliveryPrice(priceRequest).getDeliveryPrice();
+   200	        }
+   201	        order.setDeliveryPrice(deliveryPrice);
+   202	
+   203	        double discount = 0.0;
+   204	        if (orderDto.getPromoCode() != null && !orderDto.getPromoCode().isBlank()) {
+   205	            PromoApplyResponseDto quote = promoService.quote(orderDto.getPromoCode(), subtotal, deliveryPrice);
+   206	            if (!PromoService.APPLIED.equals(quote.getStatus())) {
+   207	                throw new BadRequestException("Promo code " + quote.getCode() + " cannot be applied");
+   208	            }
+   209	            discount = quote.getDiscount();
+   210	            order.setPromoCode(quote.getCode());
+   211	            order.setDiscount(discount);
+   212	            if (orderDto.getDiscount() != null && Math.abs(orderDto.getDiscount() - discount) > 0.5) {
+   213	                log.error("order.discount_mismatch {} {} {}", kv("code", quote.getCode()),
+   214	                        kv("quoted", orderDto.getDiscount()), kv("computed", discount));
+   215	            }
+   216	        }
+   217	        order.setTotalPrice(subtotal - discount + deliveryPrice);

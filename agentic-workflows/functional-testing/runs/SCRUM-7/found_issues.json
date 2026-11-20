@@ -38,6 +38,12 @@
         "key": "SCRUM-8",
         "url": "https://julfayanhakob91.atlassian.net/browse/SCRUM-8",
         "sprint": "none: filed directly on the user's request, without assignToSprint"
+      },
+      "triage": {
+        "run": "triage/runs/SCRUM-8",
+        "candidate": "H-1",
+        "rating": "confirmed",
+        "at": "2026-11-20T11:03:01Z"
       }
     },
     {
@@ -228,6 +234,12 @@
         "key": "SCRUM-8",
         "url": "https://julfayanhakob91.atlassian.net/browse/SCRUM-8",
         "sprint": "none: filed directly on the user's request, without assignToSprint"
+      },
+      "triage": {
+        "run": "triage/runs/SCRUM-8",
+        "candidate": "H-1",
+        "rating": "confirmed",
+        "at": "2026-11-20T11:03:01Z"
       }
     }
   ]

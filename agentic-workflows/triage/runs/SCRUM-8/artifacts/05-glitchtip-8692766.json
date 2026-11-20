@@ -1,0 +1,4 @@
+// glitchtip_latest_event issueId=8692766 (BACKEND-5), UTC 2026-11-20. Condensed: packages list omitted, IPs redacted.
+{"eventID":"d8b577e9127840cfb1f4b641af258ba3","projectID":29193,"groupID":"8692766","dateCreated":"2026-11-20T10:44:56.302Z","dateReceived":"2026-11-20T10:44:56.538Z","culprit":"am.foodme.backend.observability.FlakyHeartbeatJob in simulate","message":"IllegalStateException: Simulated failure during chef availability sync","tags":[{"key":"environment","value":"local"},{"key":"server_name","value":"srv-dbg6up6c6qcc73ehm670-hibernate-6c6f4577fd-l6sv8"}],
+"inAppFrames":[{"module":"am.foodme.backend.observability.FlakyHeartbeatJob","filename":"FlakyHeartbeatJob.java","function":"run","lineNo":44},{"module":"am.foodme.backend.observability.FlakyHeartbeatJob","filename":"FlakyHeartbeatJob.java","function":"simulate","lineNo":55}],
+"request":null,"user":{"ip_address":"<redacted>"}}

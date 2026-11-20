@@ -1,0 +1,48 @@
+{
+  "run": "SCRUM-8",
+  "brief": "07",
+  "topic": "code-promo",
+  "source": "code",
+  "status": "partial",
+  "window": { "from": "2026-11-20T10:50:30Z", "to": "2026-11-20T10:50:40Z" },
+  "observations": [
+    {
+      "id": "O-07-1",
+      "what": "No promo/discount/SAVE10 code in backend, web or admin source of the working tree; only an unrelated heartbeat string",
+      "quote": "apps/web/src/lib/flakyHeartbeat.ts:18:  \"load promotions\",",
+      "artifact": "artifacts/07-code-promo-apply.txt",
+      "at": "2026-11-20T10:50:30Z",
+      "query": "grep -rniE \"promo|SAVE10|TREAT15|discount\" apps/backend/src apps/web/src apps/admin/src"
+    },
+    {
+      "id": "O-07-2",
+      "what": "No promo/discount match in OrderService.java or OrderController.java",
+      "quote": "(no matches)",
+      "artifact": "artifacts/07-code-order-place.txt",
+      "at": "2026-11-20T10:50:35Z",
+      "query": "grep -niE \"promo|discount\" OrderService.java OrderController.java"
+    },
+    {
+      "id": "O-07-3",
+      "what": "Storefront checkout summary computes total as subtotal + deliveryPrice, with no Discount line or promo input in the working tree",
+      "quote": "const total = subtotal + deliveryPrice;",
+      "artifact": "artifacts/07-code-web-checkout.txt",
+      "at": "2026-11-20T10:50:40Z",
+      "query": "apps/web/src/components/sections/checkout-price-summary.tsx:20"
+    }
+  ],
+  "answers": [
+    { "question": "What expression is the percent applied to in the promo apply code? Quote file, lines and code.", "answer": "unknown", "observations": ["O-07-1"] },
+    { "question": "Does that expression include the delivery price?", "answer": "unknown", "observations": ["O-07-1"] },
+    { "question": "Is any stored previous discount added to the new discount? Quote it.", "answer": "unknown", "observations": ["O-07-1"] },
+    { "question": "Does order placement compute the discount with the same base? Quote it.", "answer": "unknown", "observations": ["O-07-2"] },
+    { "question": "Does the storefront display the server's discount/total, or compute them itself? Quote it.", "answer": "no", "observations": ["O-07-3"] }
+  ],
+  "obstacles": [
+    {
+      "what": "Questions 1-4 (and the promo part of 5): all steps of the brief",
+      "problem": "(no matches) - the promo feature is absent from the working tree on branch feature/task2-triage-pipeline; git history shows it only on feature/KAN-27-promo-code (commits 7198f9b, ff70db0)",
+      "needs": "The caller should say whether to read the code on branch feature/KAN-27-promo-code (e.g. via git show) or on the deployed commit. The brief limits me to the working tree, so I did not read it."
+    }
+  ]
+}
