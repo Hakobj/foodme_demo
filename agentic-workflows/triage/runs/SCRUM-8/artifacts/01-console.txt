@@ -1,2 +1,0 @@
-Header: Playwright browser_console_messages level=warning all=true, 2026-11-20T10:46Z
-Total messages: 0 (Errors: 0, Warnings: 0)

@@ -1,7 +1,0 @@
-requirements: { approved: true, by: "Hakob Julfayan", at: "2026-11-19T12:05:30Z", note: "" }
-plan: { approved: true, by: "Hakob Julfayan", at: "2026-11-19T12:07:42Z", note: "" }
-cases: { approved: true, by: "Hakob Julfayan", at: "2026-11-19T12:14:51Z", note: "judge 04-02 unsure" }
-manual_check: { approved: true, by: "Hakob Julfayan", at: "2026-11-19T12:38:02Z", note: "4 unsure, 4 confirmed, 0 still unsure" }
-tests: { approved: true, by: "Hakob Julfayan", at: "2026-11-19T12:43:42Z", note: "judge 07-01 unsure" }
-report_push: { approved: true, by: "Hakob Julfayan", at: "2026-11-19T13:11:20Z", note: "" }
-issues: { approved: true, by: "Hakob Julfayan", at: "2026-11-19T13:18:58Z", note: "5 approved (filed as SCRUM-8, SCRUM-9, SCRUM-10, SCRUM-11; TC-02 + TC-14 together in SCRUM-8), 1 rejected (TC-09); decided in chat: file 1-4" }
