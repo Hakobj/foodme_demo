@@ -1,0 +1,66 @@
+{
+  "run": "SCRUM-8",
+  "brief": "04",
+  "topic": "prometheus",
+  "source": "prometheus",
+  "status": "done",
+  "window": { "from": "2026-11-20T10:35:00Z", "to": "2026-11-20T10:52:30Z" },
+  "observations": [
+    {
+      "id": "O-04-1",
+      "what": "up{app=\"foodme-backend\"} is 1 at every 30 s step from 10:35:00Z (epoch 1795170900) to 10:52:30Z (epoch 1795171950), 36 samples, none 0; last sample is 10:52:30Z although the query end was 10:56Z",
+      "quote": "[1795170900,\"1\"],[1795170930,\"1\"]",
+      "artifact": "artifacts/04-prom-up.json",
+      "at": "2026-11-20T10:35:00Z",
+      "query": "up{app=\"foodme-backend\"} range 2026-11-20T10:35:00Z..10:56:00Z step 30s"
+    },
+    {
+      "id": "O-04-2",
+      "what": "promo apply URI has http_server_requests_seconds_count=1, POST, status 200, outcome SUCCESS; first sample at 10:45:30Z (epoch 1795171530), value stays 1 through 10:52:30Z",
+      "quote": "\"method\":\"POST\",\"outcome\":\"SUCCESS\",\"status\":\"200\",\"uri\":\"/api/customer/promo/apply\"},\"values\":[[1795171530,\"1\"]",
+      "artifact": "artifacts/04-prom-http.json",
+      "at": "2026-11-20T10:45:30Z",
+      "query": "http_server_requests_seconds_count{uri=~\".*promo.*|.*delivery-price.*|/api/order.*\"} range 10:35Z..10:56Z step 30s"
+    },
+    {
+      "id": "O-04-3",
+      "what": "promo apply: seconds_sum and seconds_max are both 0.860388631 with count 1 (mean = max = ~0.86 s)",
+      "quote": "\"uri\":\"/api/customer/promo/apply\"},\"values\":[[1795171530,\"0.860388631\"]",
+      "artifact": "artifacts/04-prom-http.json",
+      "at": "2026-11-20T10:45:30Z",
+      "query": "http_server_requests_seconds_sum / _max{uri=~\".*promo.*|.*delivery-price.*|/api/order.*\"} range 10:35Z..10:56Z step 30s"
+    },
+    {
+      "id": "O-04-4",
+      "what": "delivery-price URI: count 1, POST, 200, SUCCESS; seconds_sum and seconds_max both 1.215439235 (mean = max = ~1.22 s)",
+      "quote": "\"uri\":\"/api/order/delivery-price\"},\"values\":[[1795171530,\"1.215439235\"]",
+      "artifact": "artifacts/04-prom-http.json",
+      "at": "2026-11-20T10:45:30Z",
+      "query": "http_server_requests_seconds_sum{uri=~\".*promo.*|.*delivery-price.*|/api/order.*\"} range 10:35Z..10:56Z step 30s"
+    },
+    {
+      "id": "O-04-5",
+      "what": "Only two series matched the selector (promo/apply and order/delivery-price), both status 200; no series with status 4xx/5xx and no /api/order series other than delivery-price",
+      "quote": "\"outcome\":\"SUCCESS\",\"status\":\"200\",\"uri\":\"/api/order/delivery-price\"",
+      "artifact": "artifacts/04-prom-http.json",
+      "at": "",
+      "query": "http_server_requests_seconds_count{uri=~\".*promo.*|.*delivery-price.*|/api/order.*\"}"
+    },
+    {
+      "id": "O-04-6",
+      "what": "process_start_time_seconds is constant 1795169581.067 (= 2026-11-20T10:13:01Z) across the whole window, so no restart in the window",
+      "quote": "[1795170900,\"1795169581.067\"]",
+      "artifact": "artifacts/04-prom-start.json",
+      "at": "2026-11-20T10:13:01Z",
+      "query": "process_start_time_seconds range 10:35Z..10:56Z step 30s"
+    }
+  ],
+  "answers": [
+    { "question": "Was the backend scraped (up = 1) during the whole window?", "answer": "yes", "observations": ["O-04-1"] },
+    { "question": "Are there requests to the promo apply URI in the window, with what status and outcome?", "answer": "yes", "observations": ["O-04-2"] },
+    { "question": "What are the latencies (mean and max) of the promo apply and delivery-price URIs?", "answer": "yes", "observations": ["O-04-3", "O-04-4"] },
+    { "question": "Are there any 4xx/5xx statuses for those URIs in the window?", "answer": "no", "observations": ["O-04-5"] },
+    { "question": "When did the backend process last start?", "answer": "yes", "observations": ["O-04-6"] }
+  ],
+  "obstacles": []
+}

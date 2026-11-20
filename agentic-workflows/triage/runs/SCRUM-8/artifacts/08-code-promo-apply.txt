@@ -1,0 +1,91 @@
+# commit ff70db0a38bacefa34b0cbf6ff3a8b3e4ceb17dd (perf(backend): cache applied promo per customer (KAN-27)); read via git show, UTC 2026-11-20
+## apps/backend/src/main/java/am/foodme/backend/service/PromoService.java lines 26-51
+    26	    /** Prices a promo code against an order subtotal and the delivery fee for that subtotal. */
+    27	    @Transactional(readOnly = true)
+    28	    public PromoApplyResponseDto quote(String code, double subtotal, double deliveryPrice) {
+    29	        String normalized = code == null ? "" : code.trim().toUpperCase();
+    30	        double fullTotal = subtotal + deliveryPrice;
+    31	
+    32	        Optional<PromoCode> found = normalized.isEmpty()
+    33	                ? Optional.empty()
+    34	                : promoCodeRepository.findByCodeIgnoreCase(normalized);
+    35	        if (found.isEmpty()) {
+    36	            return new PromoApplyResponseDto(normalized, NOT_FOUND, null, null, 0.0, deliveryPrice, fullTotal);
+    37	        }
+    38	
+    39	        PromoCode promo = found.get();
+    40	        if (promo.getValidUntil() != null && promo.getValidUntil().isBefore(LocalDate.now())) {
+    41	            return new PromoApplyResponseDto(promo.getCode(), EXPIRED, promo.getPercent(), null, 0.0, deliveryPrice, fullTotal);
+    42	        }
+    43	        if (subtotal < promo.getMinOrderAmount()) {
+    44	            return new PromoApplyResponseDto(promo.getCode(), BELOW_MINIMUM, promo.getPercent(),
+    45	                    promo.getMinOrderAmount() - subtotal, 0.0, deliveryPrice, fullTotal);
+    46	        }
+    47	
+    48	        double discount = Math.round(fullTotal * promo.getPercent() / 100.0);
+    49	        return new PromoApplyResponseDto(promo.getCode(), APPLIED, promo.getPercent(), null,
+    50	                discount, deliveryPrice, fullTotal - discount);
+    51	    }
+## OrderService.java lines 87-116
+    87	    public PromoApplyResponseDto applyPromo(PromoApplyRequestDto request, String customerEmail) {
+    88	        double subtotal = request.getSubtotal() == null ? 0.0 : request.getSubtotal();
+    89	        double deliveryPrice = calculateDeliveryPrice(
+    90	                new DeliveryPriceRequestDto(request.getChefId(), subtotal, request.getDeliveryMethod())).getDeliveryPrice();
+    91	        String code = request.getCode() == null ? "" : request.getCode().trim().toUpperCase();
+    92	        AppliedPromo cached = appliedPromoByCustomer.get(customerEmail);
+    93	        if (cached != null && cached.matches(code, subtotal, deliveryPrice)) {
+    94	            return cached.quote();
+    95	        }
+    96	
+    97	        PromoApplyResponseDto quote = promoService.quote(code, subtotal, deliveryPrice);
+    98	        if (!PromoService.APPLIED.equals(quote.getStatus())) {
+    99	            log.info("promo.applied {} {} {}", kv("code", quote.getCode()), kv("status", quote.getStatus()),
+   100	                    kv("discount", quote.getDiscount()));
+   101	            return quote;
+   102	        }
+   103	
+   104	        if (cached != null && !cached.code().equals(quote.getCode())) {
+   105	            double previousDiscount = cached.quote().getDiscount();
+   106	            quote.setDiscount(quote.getDiscount() + previousDiscount);
+   107	            quote.setTotal(quote.getTotal() - previousDiscount);
+   108	            log.warn("promo.applied {} {} {} {} {}", kv("code", quote.getCode()), kv("status", quote.getStatus()),
+   109	                    kv("previous", cached.code()), kv("stacked", true), kv("discount", quote.getDiscount()));
+   110	        } else {
+   111	            log.info("promo.applied {} {} {}", kv("code", quote.getCode()), kv("status", quote.getStatus()),
+   112	                    kv("discount", quote.getDiscount()));
+   113	        }
+   114	        appliedPromoByCustomer.put(customerEmail, new AppliedPromo(quote.getCode(), subtotal, deliveryPrice, quote));
+   115	        return quote;
+   116	    }
+## CustomerController.java 42-44
+    42	    @PostMapping("/promo/apply")
+    43	    public PromoApplyResponseDto applyPromo(@RequestBody PromoApplyRequestDto request, Authentication authentication) {
+    44	        return orderService.applyPromo(request, authentication.getName());
+## PromoApplyResponseDto.java
+    12	public class PromoApplyResponseDto {
+    13	    private String code;
+    14	    /** APPLIED, BELOW_MINIMUM, EXPIRED or NOT_FOUND. */
+    15	    private String status;
+    16	    private Integer percent;
+    17	    private Double missingAmount;
+    18	    private Double discount;
+    19	    private Double deliveryPrice;
+    20	    private Double total;
+    21	}
+## OrderService.calculateDeliveryPrice 70-85
+    70	    public DeliveryPriceResponseDto calculateDeliveryPrice(DeliveryPriceRequestDto request) {
+    71	        Chef chef = chefRepository.findById(request.getChefId())
+    72	                .orElseThrow(() -> new NotFoundException("Chef " + request.getChefId() + " not found"));
+    73	
+    74	        if ("TAKEAWAY".equals(request.getDeliveryMethod())) {
+    75	            return new DeliveryPriceResponseDto(0.0, chef.getFreeDeliveryFrom());
+    76	        }
+    77	
+    78	        double subtotal = request.getSubtotal() == null ? 0.0 : request.getSubtotal();
+    79	        double deliveryPrice = chef.getDeliveryPrice();
+    80	        // FM-BUG-03
+    81	        if (chef.getFreeDeliveryFrom() != null && subtotal > chef.getFreeDeliveryFrom()) {
+    82	            deliveryPrice = 0.0;
+    83	        }
+    84	        return new DeliveryPriceResponseDto(deliveryPrice, chef.getFreeDeliveryFrom());
+    85	    }

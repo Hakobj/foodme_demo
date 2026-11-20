@@ -1,0 +1,26 @@
+# commit ff70db0a38bacefa34b0cbf6ff3a8b3e4ceb17dd (perf(backend): cache applied promo per customer (KAN-27)); read via git show, UTC 2026-11-20
+## apps/backend/src/main/java/am/foodme/backend/service/OrderService.java lines 51-57
+    51	    private final Map<String, AppliedPromo> appliedPromoByCustomer = new ConcurrentHashMap<>();
+    52	
+    53	    private record AppliedPromo(String code, double subtotal, double deliveryPrice, PromoApplyResponseDto quote) {
+    54	        boolean matches(String otherCode, double otherSubtotal, double otherDeliveryPrice) {
+    55	            return code.equals(otherCode) && subtotal == otherSubtotal && deliveryPrice == otherDeliveryPrice;
+    56	        }
+    57	    }
+## lines 92-95
+    92	        AppliedPromo cached = appliedPromoByCustomer.get(customerEmail);
+    93	        if (cached != null && cached.matches(code, subtotal, deliveryPrice)) {
+    94	            return cached.quote();
+    95	        }
+## lines 104-114
+   104	        if (cached != null && !cached.code().equals(quote.getCode())) {
+   105	            double previousDiscount = cached.quote().getDiscount();
+   106	            quote.setDiscount(quote.getDiscount() + previousDiscount);
+   107	            quote.setTotal(quote.getTotal() - previousDiscount);
+   108	            log.warn("promo.applied {} {} {} {} {}", kv("code", quote.getCode()), kv("status", quote.getStatus()),
+   109	                    kv("previous", cached.code()), kv("stacked", true), kv("discount", quote.getDiscount()));
+   110	        } else {
+   111	            log.info("promo.applied {} {} {}", kv("code", quote.getCode()), kv("status", quote.getStatus()),
+   112	                    kv("discount", quote.getDiscount()));
+   113	        }
+   114	        appliedPromoByCustomer.put(customerEmail, new AppliedPromo(quote.getCode(), subtotal, deliveryPrice, quote));

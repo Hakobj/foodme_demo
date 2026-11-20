@@ -1,0 +1,22 @@
+// glitchtip_latest_event issueId=8909742 (WEB-6), fetched 2026-11-20T11:3xZ. IP redacted.
+{
+  "platform": "javascript",
+  "eventID": "4081964318334fb28c6bc6228fde6e3e",
+  "groupID": "8909742",
+  "dateCreated": "2026-11-20T10:19:44.280Z",
+  "culprit": "uu(/assets/index-C0mctjQc.js)",
+  "message": "Error: Storefront background task failed: load promotions",
+  "tags": [{"key":"browser","value":"Chrome 157.0.0"},{"key":"os.name","value":"Windows"},{"key":"environment","value":"production"},{"key":"browser.name","value":"Chrome"}],
+  "exception_frames": [
+    {"filename": "/assets/index-C0mctjQc.js", "function": "r", "inApp": true, "lineNo": 23, "colNo": 6704},
+    {"filename": "/assets/index-C0mctjQc.js", "function": "uu", "inApp": true, "lineNo": 23, "colNo": 29099}
+  ],
+  "mechanism": {"type": "generic", "handled": true},
+  "breadcrumbs": [
+    {"type":"http","category":"fetch","data":{"url":"/api/customer/me","method":"GET","status_code":200},"timestamp":"2026-11-20T10:14:47.752Z"},
+    {"type":"http","category":"fetch","data":{"url":"/api/chef/active?page=0&size=6","method":"GET","status_code":200},"timestamp":"2026-11-20T10:14:48.549Z"},
+    {"type":"default","category":"sentry.event","message":"Error: Storefront background task failed: refresh featured chefs","timestamp":"2026-11-20T10:15:44.276Z"}
+  ],
+  "request": {"method": null, "url": "https://foodme-hakobjulfayan.onrender.com/"},
+  "user": {"ip_address": "<redacted>"}
+}
