@@ -1,0 +1,396 @@
+ticket: SCRUM-7
+sut: https://foodme-hakobjulfayan.onrender.com/
+sources:
+  doc: agentic-workflows/functional-testing/runs/SCRUM-7/sources/SCRUM-7.jira.md   # verbatim snapshot of the SCRUM-7 Jira description; no docs/SCRUM-7-*.md or jira/SCRUM-7*.md exists
+  jira: [SCRUM-7]
+acs:
+  - id: AC-1
+    text: "On the checkout page, the customer can enter a promo code and press Apply."
+    source: jira:SCRUM-7 (snapshot in sources.doc)
+  - id: AC-2
+    text: "A valid code reduces the subtotal by the code's percentage. The discount and the new total are shown before the order is placed."
+    source: jira:SCRUM-7 (snapshot in sources.doc)
+  - id: AC-3
+    text: "A code works only if the subtotal is at least the code's minimum order amount. Otherwise the page shows \"Add {missing amount} AMD more to use this code\"."
+    source: jira:SCRUM-7 (snapshot in sources.doc)
+  - id: AC-4
+    text: "An expired code shows \"This code has expired\"."
+    source: jira:SCRUM-7 (snapshot in sources.doc)
+  - id: AC-5
+    text: "An unknown code shows \"Code not found\"."
+    source: jira:SCRUM-7 (snapshot in sources.doc)
+  - id: AC-6
+    text: "One code per order. Applying a second code replaces the first."
+    source: jira:SCRUM-7 (snapshot in sources.doc)
+  - id: AC-7
+    text: "The customer can remove the applied code, and the total goes back to the original."
+    source: jira:SCRUM-7 (snapshot in sources.doc)
+launch_codes:   # test data, copied from the ticket's "Launch codes" table
+  - { code: SAVE10, discount: "10%", minimum_order: "3,000 AMD", status: valid }
+  - { code: TREAT15, discount: "15%", minimum_order: "8,000 AMD", status: valid }
+  - { code: OLD15, discount: "15%", minimum_order: "none", status: expired }
+out_of_scope:
+  - "Free-delivery codes"
+  - "Chef-specific codes"
+  - "First-order-only codes"
+questions:
+  - id: Q-1
+    about: [AC-2, AC-3]
+    text: "AC-2 says \"A valid code reduces the subtotal by the code's percentage\" and then shows \"the new total\". If checkout has a delivery fee, is the percentage taken from the items subtotal only, or from the total including delivery? And is the minimum in AC-3 (\"the subtotal is at least the code's minimum order amount\") checked against the items subtotal?"
+    options:
+      - "Discount and minimum both use the items subtotal only; delivery is added after the discount"
+      - "Discount applies to the whole total including delivery; minimum uses the items subtotal"
+      - "Both discount and minimum use the total including delivery"
+    answer: "Items subtotal only: discount and minimum both use the items subtotal; delivery is added after the discount"
+    answered_by: "Hakob Julfayan"
+  - id: Q-2
+    about: [AC-2]
+    text: "AC-2: \"reduces the subtotal by the code's percentage\". The ticket never says how a fractional discount is rounded (e.g. 15% of 8,010 AMD = 1,201.5 AMD). How should the discount be rounded?"
+    options:
+      - "Round to the nearest whole AMD (half up)"
+      - "Round the discount down (customer gets the smaller discount)"
+      - "Keep decimals (show 1,201.50 AMD)"
+    answer: "Nearest whole AMD: round half up to a whole AMD"
+    answered_by: "Hakob Julfayan"
+  - id: Q-3
+    about: [AC-3, AC-7]
+    text: "AC-3 says \"A code works only if the subtotal is at least the code's minimum order amount\", but nothing says what happens to an already-applied code when the cart changes. If SAVE10 is applied and the customer then lowers the cart below 3,000 AMD, what should happen?"
+    options:
+      - "The code stays attached, the discount is dropped and the \"Add {missing amount} AMD more…\" message shows"
+      - "The code is removed automatically and the total goes back to the original"
+      - "The discount stays until the order is placed (no re-check)"
+    answer: "Keep code, drop discount: code stays attached, discount removed, \"Add {missing amount} AMD more…\" message shown"
+    answered_by: "Hakob Julfayan"
+  - id: Q-4
+    about: [AC-6]
+    text: "AC-6: \"Applying a second code replaces the first.\" If the second code is invalid (unknown, expired, or below its minimum), does it still replace the first one?"
+    options:
+      - "No: the first code stays applied and the error for the second code is shown"
+      - "Yes: the first code is removed and only the error is shown"
+    answer: "No, first stays: first code stays applied; the error for the second code is shown"
+    answered_by: "Hakob Julfayan"
+  - id: Q-5
+    about: [AC-1, AC-5]
+    text: "AC-5: \"An unknown code shows \\\"Code not found\\\"\". The ticket lists codes in upper case (SAVE10) but doesn't say whether input like \"save10\" or \" SAVE10 \" (spaces) is accepted or treated as unknown."
+    options:
+      - "Case-insensitive and surrounding spaces trimmed (\"save10\" works)"
+      - "Exact match only (\"save10\" shows \"Code not found\")"
+      - "Spaces trimmed but case must match"
+    answer: "Case-insensitive + trim: \"save10\" and \" SAVE10 \" both work"
+    answered_by: "Hakob Julfayan"
+  - id: Q-6
+    about: [AC-3]
+    text: "AC-3 message: \"Add {missing amount} AMD more to use this code\". How should {missing amount} be formatted, e.g. for a 2,500 AMD subtotal with SAVE10?"
+    options:
+      - "With a thousands separator: \"Add 500 AMD more…\" / \"Add 1,500 AMD more…\""
+      - "Plain number, no separator: \"Add 1500 AMD more…\""
+      - "Whatever format the rest of the checkout page uses for prices"
+    answer: "Thousands separator: \"Add 1,500 AMD more to use this code\""
+    answered_by: "Hakob Julfayan"
+  - id: Q-7
+    about: [AC-1]
+    text: "AC-1: \"the customer can enter a promo code and press Apply\". What should happen when Apply is pressed with an empty field?"
+    options:
+      - "Apply is disabled while the field is empty"
+      - "A validation message is shown (e.g. \"Enter a code\")"
+      - "Treated as unknown: \"Code not found\""
+    answer: "Apply disabled: Apply can't be pressed while the field is empty"
+    answered_by: "Hakob Julfayan"
+  - id: Q-8
+    about: [AC-2]
+    text: "AC-2 only says \"The discount and the new total are shown before the order is placed.\" It doesn't say the discount is kept on the placed order. Should the placed order (order confirmation / order history) be charged and show the discounted total?"
+    options:
+      - "Yes: the placed order total equals the discounted total shown at checkout"
+      - "Out of scope: only the checkout page display is tested"
+    answer: "Yes, order keeps discount: placed order total equals the discounted total shown at checkout"
+    answered_by: "Hakob Julfayan"
+test_cases:
+  - id: SCRUM-7-TC-01
+    title: "Promo code field with Apply on checkout; Apply disabled while the field is empty"
+    covers: [AC-1]
+    blocked_by: [Q-7]
+    steps:
+      - "Sign in as a customer and empty the cart"
+      - "Open https://foodme-hakobjulfayan.onrender.com/chef/24 (Alans Kitchen) and add 1 × Chicken curry rice & vegetables (3,000 AMD)"
+      - "Go to checkout and choose DELIVERY"
+      - "Leave the promo code field empty and try to press Apply"
+      - "Type SAVE10 in the promo code field"
+    expected: "The checkout page has a promo code field and an Apply button; Apply is disabled while the field is empty and enabled once SAVE10 is typed"
+    expected_source: [AC-1, Q-7]
+    status: automated
+    spec: "SCRUM-7-TC-01: Promo code field with Apply on checkout; Apply disabled while the field is empty"
+    qase_id: 1
+    execution:
+      result: match
+      confidence: sure
+      log: execution.md#scrum-7-tc-01
+  - id: SCRUM-7-TC-02
+    title: "SAVE10 at exactly the 3,000 AMD minimum takes 10% off the items subtotal; delivery added after"
+    covers: [AC-2, AC-3]
+    blocked_by: [Q-1]
+    steps:
+      - "Sign in as a customer and empty the cart"
+      - "Open https://foodme-hakobjulfayan.onrender.com/chef/24 (Alans Kitchen: delivery 500 AMD, free from 5,000 AMD) and add 1 × Chicken curry rice & vegetables (3,000 AMD)"
+      - "Go to checkout and choose DELIVERY"
+      - "Type SAVE10 in the promo code field and press Apply"
+    expected: "Before the order is placed the page shows a discount of 300 AMD (10% of 3,000) and a new total of 3,200 AMD (3,000 − 300 + 500 delivery)"
+    expected_source: [AC-2, AC-3, Q-1]
+    status: automated
+    spec: "SCRUM-7-TC-02: SAVE10 at exactly the 3,000 AMD minimum takes 10% off the items subtotal; delivery added after"
+    qase_id: 2
+    execution:
+      result: mismatch
+      confidence: sure
+      log: execution.md#scrum-7-tc-02
+  - id: SCRUM-7-TC-03
+    title: "SAVE10 with a 2,900 AMD subtotal (100 below the minimum) shows the missing amount"
+    covers: [AC-3]
+    blocked_by: [Q-1]
+    steps:
+      - "Sign in as a customer and empty the cart"
+      - "Open https://foodme-hakobjulfayan.onrender.com/chef/24 (Alans Kitchen: delivery 500 AMD, free from 5,000 AMD) and add 1 × Yassai curry (2,900 AMD)"
+      - "Go to checkout and choose DELIVERY"
+      - "Type SAVE10 in the promo code field and press Apply"
+    expected: "The page shows \"Add 100 AMD more to use this code\"; no discount is applied and the total stays 3,400 AMD (2,900 + 500 delivery)"
+    expected_source: [AC-3, Q-1]
+    status: automated
+    spec: "SCRUM-7-TC-03: SAVE10 with a 2,900 AMD subtotal (100 below the minimum) shows the missing amount"
+    qase_id: 3
+    execution:
+      result: match
+      confidence: sure
+      log: execution.md#scrum-7-tc-03
+  - id: SCRUM-7-TC-04
+    title: "TREAT15 at exactly the 8,000 AMD minimum takes 15% off"
+    covers: [AC-2, AC-3]
+    blocked_by: [Q-1]
+    steps:
+      - "Sign in as a customer and empty the cart"
+      - "Open https://foodme-hakobjulfayan.onrender.com/chef/24 (Alans Kitchen: delivery 500 AMD, free from 5,000 AMD) and add 2 × Dragon Roll (4,000 AMD each, subtotal 8,000 AMD)"
+      - "Go to checkout and choose DELIVERY"
+      - "Type TREAT15 in the promo code field and press Apply"
+    expected: "Before the order is placed the page shows a discount of 1,200 AMD (15% of 8,000) and a new total of 6,800 AMD (8,000 − 1,200, delivery free because the 8,000 AMD subtotal is from 5,000 AMD)"
+    expected_source: [AC-2, AC-3, Q-1]
+    status: automated
+    spec: "SCRUM-7-TC-04: TREAT15 at exactly the 8,000 AMD minimum takes 15% off"
+    qase_id: 4
+    execution:
+      result: match
+      agent_result: mismatch
+      confidence: unsure
+      unsure_reason: "TC-10 shows the server stacks discounts; -1,550 = 1,200 + 350 (the SAVE10 discount from TC-02), so the value may be leftover state, not TREAT15 alone"
+      log: execution.md#scrum-7-tc-04
+      human_check:
+        result: mismatch
+        by: "Hakob Julfayan"
+        at: "2026-11-19T12:38:02Z"
+        note: ""
+      decision:
+        result: match
+        by: "Hakob Julfayan"
+        at: "2026-11-19T13:02:58Z"
+        note: "No mismatch for a new customer (automated run 2 passed: -1,200 / 6,800); the -1,550 in step 05 was leftover state on the tester account, covered by SCRUM-9. Skipped as a bug."
+
+  - id: SCRUM-7-TC-05
+    title: "TREAT15 with a 6,950 AMD subtotal shows the missing amount with a thousands separator"
+    covers: [AC-3]
+    blocked_by: [Q-6]
+    steps:
+      - "Sign in as a customer and empty the cart"
+      - "Open https://foodme-hakobjulfayan.onrender.com/chef/24 (Alans Kitchen) and add 1 × Chicken katsu curry with vegetables (3,350 AMD) and 1 × Pork curry rice & vegetables (3,600 AMD), subtotal 6,950 AMD"
+      - "Go to checkout and choose DELIVERY"
+      - "Type TREAT15 in the promo code field and press Apply"
+    expected: "The page shows \"Add 1,050 AMD more to use this code\" (8,000 − 6,950); no discount is applied"
+    expected_source: [AC-3, Q-6]
+    status: automated
+    spec: "SCRUM-7-TC-05: TREAT15 with a 6,950 AMD subtotal shows the missing amount with a thousands separator"
+    qase_id: 5
+    execution:
+      result: match
+      confidence: sure
+      log: execution.md#scrum-7-tc-05
+  - id: SCRUM-7-TC-06
+    title: "TREAT15 on 8,050 AMD rounds the 1,207.5 AMD discount to 1,208 AMD"
+    covers: [AC-2]
+    blocked_by: [Q-1, Q-2]
+    steps:
+      - "Sign in as a customer and empty the cart"
+      - "Open https://foodme-hakobjulfayan.onrender.com/chef/24 (Alans Kitchen: delivery 500 AMD, free from 5,000 AMD) and add 1 × Chicken Katsu Curry (3,150 AMD), 1 × Yassai curry (2,900 AMD) and 1 × Salmon Maki (2,000 AMD), subtotal 8,050 AMD"
+      - "Go to checkout and choose DELIVERY"
+      - "Type TREAT15 in the promo code field and press Apply"
+    expected: "The page shows a discount of 1,208 AMD (15% of 8,050 = 1,207.5, rounded half up) and a new total of 6,842 AMD (8,050 − 1,208, delivery free because the 8,050 AMD subtotal is from 5,000 AMD)"
+    expected_source: [AC-2, Q-2, Q-1]
+    status: automated
+    spec: "SCRUM-7-TC-06: TREAT15 on 8,050 AMD rounds the 1,207.5 AMD discount to 1,208 AMD"
+    qase_id: 6
+    execution:
+      result: match
+      confidence: sure
+      log: execution.md#scrum-7-tc-06
+  - id: SCRUM-7-TC-07
+    title: "Expired code OLD15 is rejected"
+    covers: [AC-4]
+    blocked_by: []
+    steps:
+      - "Sign in as a customer and empty the cart"
+      - "Open https://foodme-hakobjulfayan.onrender.com/chef/24 (Alans Kitchen: delivery 500 AMD, free from 5,000 AMD) and add 1 × Chicken curry rice & vegetables (3,000 AMD)"
+      - "Go to checkout and choose DELIVERY"
+      - "Type OLD15 in the promo code field and press Apply"
+    expected: "The page shows \"This code has expired\"; no discount is applied and the total stays 3,500 AMD (3,000 + 500 delivery)"
+    expected_source: AC-4
+    status: automated
+    spec: "SCRUM-7-TC-07: Expired code OLD15 is rejected"
+    qase_id: 7
+    execution:
+      result: match
+      confidence: sure
+      log: execution.md#scrum-7-tc-07
+  - id: SCRUM-7-TC-08
+    title: "Unknown code NOPE99 is rejected"
+    covers: [AC-5]
+    blocked_by: []
+    steps:
+      - "Sign in as a customer and empty the cart"
+      - "Open https://foodme-hakobjulfayan.onrender.com/chef/24 (Alans Kitchen: delivery 500 AMD, free from 5,000 AMD) and add 1 × Chicken curry rice & vegetables (3,000 AMD)"
+      - "Go to checkout and choose DELIVERY"
+      - "Type NOPE99 in the promo code field and press Apply"
+    expected: "The page shows \"Code not found\"; no discount is applied and the total stays 3,500 AMD (3,000 + 500 delivery)"
+    expected_source: AC-5
+    status: automated
+    spec: "SCRUM-7-TC-08: Unknown code NOPE99 is rejected"
+    qase_id: 8
+    execution:
+      result: match
+      confidence: sure
+      log: execution.md#scrum-7-tc-08
+  - id: SCRUM-7-TC-09
+    title: "Lower-case code with surrounding spaces (\" save10 \") is accepted as SAVE10"
+    covers: [AC-2, AC-5]
+    blocked_by: [Q-5, Q-1]
+    steps:
+      - "Sign in as a customer and empty the cart"
+      - "Open https://foodme-hakobjulfayan.onrender.com/chef/24 (Alans Kitchen: delivery 500 AMD, free from 5,000 AMD) and add 1 × Chicken curry rice & vegetables (3,000 AMD)"
+      - "Go to checkout and choose DELIVERY"
+      - "Type \" save10 \" (a space, save10 in lower case, a space) in the promo code field and press Apply"
+    expected: "\"Code not found\" is not shown; the page shows a discount of 300 AMD and a new total of 3,200 AMD, the same as SAVE10"
+    expected_source: [Q-5, AC-2, Q-1]
+    status: automated
+    spec: "SCRUM-7-TC-09: Lower-case code with surrounding spaces (\" save10 \") is accepted as SAVE10"
+    qase_id: 9
+    execution:
+      result: mismatch
+      confidence: unsure
+      unsure_reason: "TC-10 shows the server stacks discounts; -1,558 = 1,208 (TC-06) + 350 (TC-02), so the value may be leftover state rather than what ' save10 ' alone gives"
+      log: execution.md#scrum-7-tc-09
+      human_check:
+        result: mismatch
+        by: "Hakob Julfayan"
+        at: "2026-11-19T12:38:02Z"
+        note: ""
+  - id: SCRUM-7-TC-10
+    title: "Applying TREAT15 after SAVE10 replaces it"
+    covers: [AC-6]
+    blocked_by: [Q-1]
+    steps:
+      - "Sign in as a customer and empty the cart"
+      - "Open https://foodme-hakobjulfayan.onrender.com/chef/24 (Alans Kitchen: delivery 500 AMD, free from 5,000 AMD) and add 2 × Dragon Roll (4,000 AMD each, subtotal 8,000 AMD)"
+      - "Go to checkout and choose DELIVERY"
+      - "Type SAVE10 in the promo code field and press Apply; note the discount (800 AMD) and total (7,200 AMD)"
+      - "Type TREAT15 in the promo code field and press Apply"
+    expected: "After the second Apply only TREAT15 is applied: the discount is 1,200 AMD (15% of 8,000, not 800 + 1,200) and the new total is 6,800 AMD"
+    expected_source: [AC-6, AC-2, Q-1]
+    status: automated
+    spec: "SCRUM-7-TC-10: Applying TREAT15 after SAVE10 replaces it"
+    qase_id: 10
+    execution:
+      result: mismatch
+      confidence: sure
+      log: execution.md#scrum-7-tc-10
+  - id: SCRUM-7-TC-11
+    title: "An expired second code (OLD15) does not replace an applied SAVE10"
+    covers: [AC-6]
+    blocked_by: [Q-4, Q-1]
+    steps:
+      - "Sign in as a customer and empty the cart"
+      - "Open https://foodme-hakobjulfayan.onrender.com/chef/24 (Alans Kitchen: delivery 500 AMD, free from 5,000 AMD) and add 2 × Dragon Roll (4,000 AMD each, subtotal 8,000 AMD)"
+      - "Go to checkout and choose DELIVERY"
+      - "Type SAVE10 in the promo code field and press Apply"
+      - "Type OLD15 in the promo code field and press Apply"
+    expected: "The page shows \"This code has expired\"; SAVE10 stays applied with a discount of 800 AMD (10% of 8,000) and a total of 7,200 AMD"
+    expected_source: [Q-4, AC-4, AC-2, Q-1]
+    status: automated
+    spec: "SCRUM-7-TC-11: An expired second code (OLD15) does not replace an applied SAVE10"
+    qase_id: 11
+    execution:
+      result: mismatch
+      confidence: sure
+      log: execution.md#scrum-7-tc-11
+  - id: SCRUM-7-TC-12
+    title: "Removing an applied SAVE10 restores the original total"
+    covers: [AC-7]
+    blocked_by: [Q-1]
+    steps:
+      - "Sign in as a customer and empty the cart"
+      - "Open https://foodme-hakobjulfayan.onrender.com/chef/24 (Alans Kitchen: delivery 500 AMD, free from 5,000 AMD) and add 1 × Chicken curry rice & vegetables (3,000 AMD)"
+      - "Go to checkout and choose DELIVERY"
+      - "Type SAVE10 in the promo code field and press Apply; note the total (3,200 AMD)"
+      - "Remove the applied code"
+    expected: "After removing, no discount is shown and the total goes back to the original 3,500 AMD (3,000 + 500 delivery)"
+    expected_source: [AC-7, Q-1]
+    status: automated
+    spec: "SCRUM-7-TC-12: Removing an applied SAVE10 restores the original total"
+    qase_id: 12
+    execution:
+      result: match
+      confidence: sure
+      log: execution.md#scrum-7-tc-12
+  - id: SCRUM-7-TC-13
+    title: "Applied SAVE10 stays but loses its discount when the cart drops below 3,000 AMD"
+    covers: [AC-3]
+    blocked_by: [Q-3, Q-6, Q-1]
+    steps:
+      - "Sign in as a customer and empty the cart"
+      - "Open https://foodme-hakobjulfayan.onrender.com/chef/24 (Alans Kitchen: delivery 500 AMD, free from 5,000 AMD) and add 2 × Oshinko Maki (1,500 AMD each, subtotal 3,000 AMD)"
+      - "Go to checkout and choose DELIVERY"
+      - "Type SAVE10 in the promo code field and press Apply; note the discount (300 AMD) and total (3,200 AMD)"
+      - "Lower Oshinko Maki to 1 (subtotal 1,500 AMD) and return to checkout"
+    expected: "SAVE10 is still shown as the entered code, no discount is applied, the page shows \"Add 1,500 AMD more to use this code\" and the total is 2,000 AMD (1,500 + 500 delivery)"
+    expected_source: [Q-3, AC-3, Q-6, Q-1]
+    status: automated
+    spec: "SCRUM-7-TC-13: Applied SAVE10 stays but loses its discount when the cart drops below 3,000 AMD"
+    qase_id: 13
+    execution:
+      result: mismatch
+      confidence: unsure
+      unsure_reason: "I chose how to lower the quantity (chef-page sidebar + navigation back), so I can't tell if the code was dropped by the cart change or by leaving checkout"
+      log: execution.md#scrum-7-tc-13
+      human_check:
+        result: mismatch
+        by: "Hakob Julfayan"
+        at: "2026-11-19T12:38:02Z"
+        note: ""
+  - id: SCRUM-7-TC-14
+    title: "An order placed with SAVE10 is charged the discounted total"
+    covers: [AC-2]
+    blocked_by: [Q-8, Q-1]
+    steps:
+      - "Sign in as a customer and empty the cart"
+      - "Open https://foodme-hakobjulfayan.onrender.com/chef/24 (Alans Kitchen: delivery 500 AMD, free from 5,000 AMD) and add 1 × Chicken curry rice & vegetables (3,000 AMD)"
+      - "Go to checkout and choose DELIVERY; fill in the delivery details"
+      - "Type SAVE10 in the promo code field and press Apply"
+      - "Place the order, then open the order in the customer's order history"
+    expected: "Checkout shows a total of 3,200 AMD before placing; the placed order (confirmation and order history) has a total of 3,200 AMD, not 3,500 AMD"
+    expected_source: [Q-8, AC-2, Q-1]
+    status: automated
+    spec: "SCRUM-7-TC-14: An order placed with SAVE10 is charged the discounted total"
+    qase_id: 14
+    execution:
+      result: mismatch
+      confidence: unsure
+      unsure_reason: "Confirmation page shows no total (can't read that fact); delivery address chosen by me; history shows 3,150 not 3,200"
+      log: execution.md#scrum-7-tc-14
+      human_check:
+        result: mismatch
+        by: "Hakob Julfayan"
+        at: "2026-11-19T12:38:02Z"
+        note: ""

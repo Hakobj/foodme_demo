@@ -1,0 +1,82 @@
+{
+  "run": "SCRUM-8",
+  "brief": "06",
+  "topic": "test-base",
+  "source": "playwright",
+  "status": "done",
+  "window": { "from": "2026-11-20T10:50:12Z", "to": "2026-11-20T10:51:40Z" },
+  "observations": [
+    {
+      "id": "O-06-1",
+      "what": "Initial checkout state: 1 x Chicken curry, no code, Delivery selected, summary 3,000 / 500 / 3,500",
+      "quote": "[initial state ~10:50:12Z] 1x Chicken curry rice & vegetables 3,000 AMD; no code applied; Delivery selected; Subtotal 3,000 AMD | Delivery 500 AMD | Total 3,500 AMD",
+      "artifact": "artifacts/06-page-text.txt",
+      "at": "2026-11-20T10:50:12Z",
+      "query": "https://foodme-hakobjulfayan.onrender.com/checkout"
+    },
+    {
+      "id": "O-06-2",
+      "what": "Checkout offers Takeaway (Pick up); SAVE10 on 3,000 AMD cart: Delivery Free, Discount -300, Total 2,700",
+      "quote": "SAVE10 applied: 10% off Subtotal 3,000 AMD Delivery Free Discount (SAVE10) −300 AMD Total 2,700 AMD",
+      "artifact": "artifacts/06-page-text.txt",
+      "at": "2026-11-20T10:50:27Z",
+      "query": "https://foodme-hakobjulfayan.onrender.com/checkout (Takeaway, SAVE10)"
+    },
+    {
+      "id": "O-06-3",
+      "what": "SAVE10 on the same 3,000 AMD cart with Delivery: Delivery 500, Discount -350, Total 3,150",
+      "quote": "SAVE10 applied: 10% off Subtotal 3,000 AMD Delivery 500 AMD Discount (SAVE10) −350 AMD Add 2,000 AMD more for free delivery. Total 3,150 AMD",
+      "artifact": "artifacts/06-page-text.txt",
+      "at": "2026-11-20T10:50:45Z",
+      "query": "https://foodme-hakobjulfayan.onrender.com/checkout (Delivery, SAVE10)"
+    },
+    {
+      "id": "O-06-4",
+      "what": "SAVE10 on cart of 1 x Dragon Roll (4,000 AMD) with Delivery: Delivery 500, Discount -450, Total 4,050",
+      "quote": "1x Dragon Roll 4,000 AMD SAVE10 applied: 10% off Subtotal 4,000 AMD Delivery 500 AMD Discount (SAVE10) −450 AMD Add 1,000 AMD more for free delivery. Total 4,050 AMD",
+      "artifact": "artifacts/06-page-text.txt",
+      "at": "2026-11-20T10:51:35Z",
+      "query": "https://foodme-hakobjulfayan.onrender.com/checkout (Delivery, SAVE10)"
+    },
+    {
+      "id": "O-06-5",
+      "what": "Apply 1 (Takeaway) request and response body",
+      "quote": "\"requestBody\":{\"code\":\"SAVE10\",\"chefId\":24,\"subtotal\":3000,\"deliveryMethod\":\"TAKEAWAY\"},\"responseBody\":{\"code\":\"SAVE10\",\"status\":\"APPLIED\",\"percent\":10,\"missingAmount\":null,\"discount\":300.0,\"deliveryPrice\":0.0,\"total\":2700.0}",
+      "artifact": "artifacts/06-network.json",
+      "at": "2026-11-20T10:50:25Z",
+      "query": "POST /api/customer/promo/apply"
+    },
+    {
+      "id": "O-06-6",
+      "what": "Apply 2 (Delivery, 3,000) request and response body",
+      "quote": "\"requestBody\":{\"code\":\"SAVE10\",\"chefId\":24,\"subtotal\":3000,\"deliveryMethod\":\"DELIVERY\"},\"responseBody\":{\"code\":\"SAVE10\",\"status\":\"APPLIED\",\"percent\":10,\"missingAmount\":null,\"discount\":350.0,\"deliveryPrice\":500.0,\"total\":3150.0}",
+      "artifact": "artifacts/06-network.json",
+      "at": "2026-11-20T10:50:43Z",
+      "query": "POST /api/customer/promo/apply"
+    },
+    {
+      "id": "O-06-7",
+      "what": "Apply 3 (Delivery, 4,000) request and response body",
+      "quote": "\"requestBody\":{\"code\":\"SAVE10\",\"chefId\":24,\"subtotal\":4000,\"deliveryMethod\":\"DELIVERY\"},\"responseBody\":{\"code\":\"SAVE10\",\"status\":\"APPLIED\",\"percent\":10,\"missingAmount\":null,\"discount\":450.0,\"deliveryPrice\":500.0,\"total\":4050.0}",
+      "artifact": "artifacts/06-network.json",
+      "at": "2026-11-20T10:51:33Z",
+      "query": "POST /api/customer/promo/apply"
+    },
+    {
+      "id": "O-06-8",
+      "what": "Each of the three applies has its own POST /api/customer/promo/apply entry in the network list (191, 192, 511)",
+      "quote": "\"191 POST /api/customer/promo/apply 200\",\"192 POST /api/customer/promo/apply 200\"",
+      "artifact": "artifacts/06-network.json",
+      "at": "2026-11-20T10:50:43Z",
+      "query": "browser_network_requests filter /api/"
+    }
+  ],
+  "answers": [
+    { "question": "Does the checkout offer a non-delivery method, and with it what Delivery, Discount and Total does SAVE10 give on the 3,000 AMD cart?", "answer": "yes", "observations": ["O-06-2", "O-06-5"] },
+    { "question": "With Delivery on the 3,000 AMD cart, what Discount and Total does SAVE10 give this time?", "answer": "yes", "observations": ["O-06-3", "O-06-6"] },
+    { "question": "On the cart from step 5, what are Subtotal, Delivery, Discount and Total with SAVE10?", "answer": "yes", "observations": ["O-06-4", "O-06-7"] },
+    { "question": "For each apply, what are the request body and the response body of POST /api/customer/promo/apply (discount, deliveryPrice, total)?", "answer": "yes", "observations": ["O-06-5", "O-06-6", "O-06-7"] },
+    { "question": "Did every apply produce its own POST /api/customer/promo/apply request?", "answer": "yes", "observations": ["O-06-8"] }
+  ],
+  "obstacles": []
+}

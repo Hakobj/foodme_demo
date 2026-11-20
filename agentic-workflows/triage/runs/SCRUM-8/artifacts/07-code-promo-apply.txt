@@ -1,0 +1,26 @@
+# grep -rniE 'promo|SAVE10|TREAT15|discount' apps/backend/src apps/web/src apps/admin/src  -- branch feature/task2-triage-pipeline, 2026-11-20T10:50:30Z
+apps/web/src/lib/flakyHeartbeat.ts:18:  "load promotions",
+# controllers/services in working tree
+apps/backend/src/main/java/am/foodme/backend/controller/api:
+ChefController.java
+CustomerAuthController.java
+CustomerController.java
+DebugController.java
+DishController.java
+ImageController.java
+OrderController.java
+
+apps/backend/src/main/java/am/foodme/backend/service:
+AdminAuthService.java
+AdminChefService.java
+AdminDishService.java
+AdminOrderService.java
+ChefService.java
+CustomerAuthService.java
+DishService.java
+ImageSeedRunner.java
+ImageService.java
+OrderReviewService.java
+OrderService.java
+# grep -rn 'apply' controller
+(no matches)

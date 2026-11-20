@@ -1,0 +1,65 @@
+{
+  "run": "SCRUM-8",
+  "brief": "03",
+  "topic": "loki",
+  "source": "loki",
+  "status": "done",
+  "window": { "from": "2026-11-20T10:35:00Z", "to": "2026-11-20T10:56:00Z" },
+  "observations": [
+    {
+      "id": "O-03-1",
+      "what": "Backend logged POST /api/order/delivery-price with a 3000 subtotal; response delivery price 500",
+      "quote": "req.body: {\"chefId\":24,\"subtotal\":3000,\"deliveryMethod\":\"DELIVERY\"}\n  res.body: {\"deliveryPrice\":500.0,\"freeDeliveryFrom\":5000.0}",
+      "artifact": "artifacts/03-loki-promo.txt",
+      "at": "2026-11-20T10:45:07.874Z",
+      "query": "{app=\"foodme-backend\"} |~ \"promo|delivery-price|/api/order\""
+    },
+    {
+      "id": "O-03-2",
+      "what": "OrderService logged the promo application with discount 350.0",
+      "quote": "promo.applied code=SAVE10 status=APPLIED discount=350.0",
+      "artifact": "artifacts/03-loki-promo.txt",
+      "at": "2026-11-20T10:45:18.285Z",
+      "query": "{app=\"foodme-backend\"} |~ \"promo|delivery-price|/api/order\""
+    },
+    {
+      "id": "O-03-3",
+      "what": "HTTP log of POST /api/customer/promo/apply: request subtotal 3000 and delivery method, response discount 350 and total 3150",
+      "quote": "req.body: {\"code\":\"SAVE10\",\"chefId\":24,\"subtotal\":3000,\"deliveryMethod\":\"DELIVERY\"}\n  res.body: {\"code\":\"SAVE10\",\"status\":\"APPLIED\",\"percent\":10,\"missingAmount\":null,\"discount\":350.0,\"deliveryPrice\":500.0,\"total\":3150.0}",
+      "artifact": "artifacts/03-loki-promo.txt",
+      "at": "2026-11-20T10:45:18.365Z",
+      "query": "{app=\"foodme-backend\"} |~ \"promo|delivery-price|/api/order\""
+    },
+    {
+      "id": "O-03-4",
+      "what": "Only one promo/apply request and one promo.applied line are in the window; no line at about 10:45:37Z and no /api/order placement line",
+      "quote": "# 3 lines returned, 15 lines scanned",
+      "artifact": "artifacts/03-loki-promo.txt",
+      "at": "",
+      "query": "{app=\"foodme-backend\"} |~ \"promo|delivery-price|/api/order\""
+    },
+    {
+      "id": "O-03-5",
+      "what": "WARN lines in the window are all FlakyHeartbeatJob demo failures; no ERROR lines",
+      "quote": "logger=am.foodme.backend.observability.FlakyHeartbeatJob level=WARN message=\"Heartbeat job 'chef availability sync' failed (demo)\"",
+      "artifact": "artifacts/03-loki-errors.txt",
+      "at": "2026-11-20T10:38:56.298Z",
+      "query": "{app=\"foodme-backend\"} |~ \"ERROR|WARN\""
+    },
+    {
+      "id": "O-03-6",
+      "what": "Startup/Flyway search returned no lines in the window",
+      "quote": "-> no entries (0 lines returned, 16 scanned).",
+      "artifact": "artifacts/03-loki-errors.txt",
+      "at": "",
+      "query": "{app=\"foodme-backend\"} |~ \"Started|Flyway|Tomcat started|Application\""
+    }
+  ],
+  "answers": [
+    { "question": "Are there backend log lines for /api/customer/promo/apply or /api/order/delivery-price in the window, and what do they say?", "answer": "yes", "observations": ["O-03-1", "O-03-3", "O-03-4"] },
+    { "question": "Does any line log values used for the discount (code, percent, subtotal, delivery price, base, discount, total)? Quote them.", "answer": "yes", "observations": ["O-03-2", "O-03-3"] },
+    { "question": "Are there WARN or ERROR lines in the window, and which loggers/messages?", "answer": "yes", "observations": ["O-03-5"] },
+    { "question": "Is there any sign of a restart, deploy or startup (e.g. \"Started\", \"Flyway\") in the window?", "answer": "no", "observations": ["O-03-6"] }
+  ],
+  "obstacles": []
+}

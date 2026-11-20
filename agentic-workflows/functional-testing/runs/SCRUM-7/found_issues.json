@@ -1,0 +1,246 @@
+{
+  "run": "SCRUM-7",
+  "sut": "https://foodme-hakobjulfayan.onrender.com/",
+  "issues": [
+    {
+      "id": "SCRUM-7-ISSUE-01",
+      "title": "Bug: SAVE10 discount is taken from subtotal + delivery (−350 instead of −300)",
+      "cases": [
+        "SCRUM-7-TC-02"
+      ],
+      "source": "05 mismatch",
+      "covers": [
+        "AC-2",
+        "AC-3"
+      ],
+      "expected": "Before the order is placed the page shows a discount of 300 AMD (10% of 3,000) and a new total of 3,200 AMD (3,000 − 300 + 500 delivery)",
+      "observed": "\"SAVE10 applied: 10% off\" · Subtotal 3,000 AMD · Delivery 500 AMD · \"Discount (SAVE10)\" \"−350 AMD\" · Total 3,150 AMD. The 10% is taken from subtotal + delivery (3,500), against Q-1. A retry (remove code, apply again at 12:18:44Z) gave the same values.",
+      "steps": [
+        "Sign in as a customer and empty the cart",
+        "Open https://foodme-hakobjulfayan.onrender.com/chef/24 (Alans Kitchen: delivery 500 AMD, free from 5,000 AMD) and add 1 × Chicken curry rice & vegetables (3,000 AMD)",
+        "Go to checkout and choose DELIVERY",
+        "Type SAVE10 in the promo code field and press Apply"
+      ],
+      "evidence": [
+        "execution.md#scrum-7-tc-02",
+        "results.json: SCRUM-7-TC-02: failed: Error: expect(locator).toBeVisible() failed Locator: getByRole('complementary').getByText(/^[−-]\\s?300 AMD$/) Expected: visible Timeout: 5000ms Error: element(s) not found Call log: - Expect \"toBeVisible\" with timeout 5000ms - waiting for g"
+      ],
+      "observed_at": "2026-11-19T12:18:20Z",
+      "priority": "High",
+      "priority_reason": "High: wrong amount on a placed order / checkout total (jira skill: blocks or breaks checkout)",
+      "status": "filed",
+      "decision": {
+        "by": "Hakob Julfayan",
+        "at": "2026-11-19T13:06:32Z",
+        "note": "file 1-4 (bug 1: TC-02 + TC-14 filed together)"
+      },
+      "jira": {
+        "key": "SCRUM-8",
+        "url": "https://julfayanhakob91.atlassian.net/browse/SCRUM-8",
+        "sprint": "none: filed directly on the user's request, without assignToSprint"
+      },
+      "triage": {
+        "run": "triage/runs/SCRUM-8",
+        "candidate": "H-1",
+        "rating": "confirmed",
+        "at": "2026-11-20T11:03:01Z"
+      }
+    },
+    {
+      "id": "SCRUM-7-ISSUE-02",
+      "title": "Bug: \" save10 \" gives a wrong discount (−1,558) instead of SAVE10's",
+      "cases": [
+        "SCRUM-7-TC-09"
+      ],
+      "source": "05 mismatch",
+      "covers": [
+        "AC-2",
+        "AC-5"
+      ],
+      "expected": "\"Code not found\" is not shown; the page shows a discount of 300 AMD and a new total of 3,200 AMD, the same as SAVE10",
+      "observed": "\"SAVE10 applied: 10% off\" · Subtotal 3,000 AMD · Delivery 500 AMD · \"Discount (SAVE10)\" \"−1,558 AMD\" · Total 1,942 AMD. \"Code not found\" is not shown (that part matches). The discount is wrong, and it also differs from upper-case SAVE10 on the same cart (−350 in TC-02). Same values on a retry (12:23:09Z) and after a page reload (12:23:25Z).",
+      "steps": [
+        "Sign in as a customer and empty the cart",
+        "Open https://foodme-hakobjulfayan.onrender.com/chef/24 (Alans Kitchen: delivery 500 AMD, free from 5,000 AMD) and add 1 × Chicken curry rice & vegetables (3,000 AMD)",
+        "Go to checkout and choose DELIVERY",
+        "Type \" save10 \" (a space, save10 in lower case, a space) in the promo code field and press Apply"
+      ],
+      "evidence": [
+        "execution.md#scrum-7-tc-09",
+        "results.json: SCRUM-7-TC-09: failed: Error: expect(locator).toBeVisible() failed Locator: getByRole('complementary').getByText(/^[−-]\\s?300 AMD$/) Expected: visible Timeout: 5000ms Error: element(s) not found Call log: - Expect \"toBeVisible\" with timeout 5000ms - waiting for g"
+      ],
+      "observed_at": "2026-11-19T12:22:55Z",
+      "priority": "Medium",
+      "priority_reason": "Medium: wrong promo state at checkout, order still possible (jira skill default)",
+      "status": "rejected",
+      "decision": {
+        "by": "Hakob Julfayan",
+        "at": "2026-11-19T13:06:32Z",
+        "note": "not filed: step 05 value most likely leftover state (SCRUM-9); runs disagree. User approved only bugs 1-4"
+      },
+      "jira": {
+        "key": "",
+        "url": "",
+        "sprint": ""
+      }
+    },
+    {
+      "id": "SCRUM-7-ISSUE-03",
+      "title": "Bug: TREAT15 after SAVE10 stacks both discounts (−2,000) instead of replacing",
+      "cases": [
+        "SCRUM-7-TC-10"
+      ],
+      "source": "05 mismatch",
+      "covers": [
+        "AC-6"
+      ],
+      "expected": "After the second Apply only TREAT15 is applied: the discount is 1,200 AMD (15% of 8,000, not 800 + 1,200) and the new total is 6,800 AMD",
+      "observed": "\"TREAT15 applied: 15% off\" · Subtotal 8,000 AMD · Delivery Free · \"Discount (TREAT15)\" \"−2,000 AMD\" · Total 6,000 AMD. The label shows only TREAT15, but the discount is 800 + 1,200: the two discounts stack. A retry (remove, SAVE10, then TREAT15 at 12:24:35Z) gave the same values.",
+      "steps": [
+        "Sign in as a customer and empty the cart",
+        "Open https://foodme-hakobjulfayan.onrender.com/chef/24 (Alans Kitchen: delivery 500 AMD, free from 5,000 AMD) and add 2 × Dragon Roll (4,000 AMD each, subtotal 8,000 AMD)",
+        "Go to checkout and choose DELIVERY",
+        "Type SAVE10 in the promo code field and press Apply; note the discount (800 AMD) and total (7,200 AMD)",
+        "Type TREAT15 in the promo code field and press Apply"
+      ],
+      "evidence": [
+        "execution.md#scrum-7-tc-10",
+        "results.json: SCRUM-7-TC-10: failed: Error: expect(locator).toBeVisible() failed Locator: getByRole('complementary').getByText(/^[−-]\\s?1,200 AMD$/) Expected: visible Timeout: 5000ms Error: element(s) not found Call log: - Expect \"toBeVisible\" with timeout 5000ms - waiting for"
+      ],
+      "observed_at": "2026-11-19T12:23:51Z",
+      "priority": "High",
+      "priority_reason": "High: wrong amount on a placed order / checkout total (jira skill: blocks or breaks checkout)",
+      "status": "filed",
+      "decision": {
+        "by": "Hakob Julfayan",
+        "at": "2026-11-19T13:06:32Z",
+        "note": "file 1-4 (bug 2)"
+      },
+      "jira": {
+        "key": "SCRUM-9",
+        "url": "https://julfayanhakob91.atlassian.net/browse/SCRUM-9",
+        "sprint": "none: filed directly on the user's request, without assignToSprint"
+      }
+    },
+    {
+      "id": "SCRUM-7-ISSUE-04",
+      "title": "Bug: expired OLD15 removes the applied SAVE10 instead of keeping it",
+      "cases": [
+        "SCRUM-7-TC-11"
+      ],
+      "source": "05 mismatch",
+      "covers": [
+        "AC-6"
+      ],
+      "expected": "The page shows \"This code has expired\"; SAVE10 stays applied with a discount of 800 AMD (10% of 8,000) and a total of 7,200 AMD",
+      "observed": "\"This code has expired\" · Subtotal 8,000 AMD · Delivery Free · no \"SAVE10 applied\" line, no Discount line · Total 8,000 AMD. The expired second code removed the applied SAVE10 (against Q-4). Even before OLD15, the SAVE10 discount was −2,800, not 800.",
+      "steps": [
+        "Sign in as a customer and empty the cart",
+        "Open https://foodme-hakobjulfayan.onrender.com/chef/24 (Alans Kitchen: delivery 500 AMD, free from 5,000 AMD) and add 2 × Dragon Roll (4,000 AMD each, subtotal 8,000 AMD)",
+        "Go to checkout and choose DELIVERY",
+        "Type SAVE10 in the promo code field and press Apply",
+        "Type OLD15 in the promo code field and press Apply"
+      ],
+      "evidence": [
+        "execution.md#scrum-7-tc-11",
+        "results.json: SCRUM-7-TC-11: failed: Error: expect(locator).toBeVisible() failed Locator: getByRole('complementary').getByText(/^[−-]\\s?800 AMD$/) Expected: visible Timeout: 5000ms Error: element(s) not found Call log: - Expect \"toBeVisible\" with timeout 5000ms - waiting for g"
+      ],
+      "observed_at": "2026-11-19T12:25:08Z",
+      "priority": "Medium",
+      "priority_reason": "Medium: wrong promo state at checkout, order still possible (jira skill default)",
+      "status": "filed",
+      "decision": {
+        "by": "Hakob Julfayan",
+        "at": "2026-11-19T13:06:32Z",
+        "note": "file 1-4 (bug 3); TC-11 re-run confirmed a real mismatch, not a timeout"
+      },
+      "jira": {
+        "key": "SCRUM-10",
+        "url": "https://julfayanhakob91.atlassian.net/browse/SCRUM-10",
+        "sprint": "none: filed directly on the user's request, without assignToSprint"
+      }
+    },
+    {
+      "id": "SCRUM-7-ISSUE-05",
+      "title": "Bug: applied SAVE10 is dropped when the cart falls below 3,000 AMD, no \"Add 1,500 AMD more\" message",
+      "cases": [
+        "SCRUM-7-TC-13"
+      ],
+      "source": "05 mismatch",
+      "covers": [
+        "AC-3"
+      ],
+      "expected": "SAVE10 is still shown as the entered code, no discount is applied, the page shows \"Add 1,500 AMD more to use this code\" and the total is 2,000 AMD (1,500 + 500 delivery)",
+      "observed": "Promo code field empty (value \"\"), no \"SAVE10 applied\" line, no \"Add 1,500 AMD more to use this code\" message · Subtotal 1,500 AMD · Delivery 500 AMD · Total 2,000 AMD. The total matches; the kept code and the message don't. Extra check: typing SAVE10 again on this cart does show \"Add 1,500 AMD more to use this code\".",
+      "steps": [
+        "Sign in as a customer and empty the cart",
+        "Open https://foodme-hakobjulfayan.onrender.com/chef/24 (Alans Kitchen: delivery 500 AMD, free from 5,000 AMD) and add 2 × Oshinko Maki (1,500 AMD each, subtotal 3,000 AMD)",
+        "Go to checkout and choose DELIVERY",
+        "Type SAVE10 in the promo code field and press Apply; note the discount (300 AMD) and total (3,200 AMD)",
+        "Lower Oshinko Maki to 1 (subtotal 1,500 AMD) and return to checkout"
+      ],
+      "evidence": [
+        "execution.md#scrum-7-tc-13",
+        "results.json: SCRUM-7-TC-13: failed: Error: expect(locator).toHaveValue(expected) failed Locator: getByLabel('Promo code', { exact: true }) Expected: \"SAVE10\" Received: \"\" Timeout: 5000ms Call log: - Expect \"toHaveValue\" with timeout 5000ms - waiting for getByLabel('Promo code"
+      ],
+      "observed_at": "2026-11-19T12:26:15Z",
+      "priority": "Medium",
+      "priority_reason": "Medium: wrong promo state at checkout, order still possible (jira skill default)",
+      "status": "filed",
+      "decision": {
+        "by": "Hakob Julfayan",
+        "at": "2026-11-19T13:06:32Z",
+        "note": "file 1-4 (bug 4)"
+      },
+      "jira": {
+        "key": "SCRUM-11",
+        "url": "https://julfayanhakob91.atlassian.net/browse/SCRUM-11",
+        "sprint": "none: filed directly on the user's request, without assignToSprint"
+      }
+    },
+    {
+      "id": "SCRUM-7-ISSUE-06",
+      "title": "Bug: order placed with SAVE10 is charged 3,150 AMD instead of 3,200 AMD",
+      "cases": [
+        "SCRUM-7-TC-14"
+      ],
+      "source": "05 mismatch",
+      "covers": [
+        "AC-2"
+      ],
+      "expected": "Checkout shows a total of 3,200 AMD before placing; the placed order (confirmation and order history) has a total of 3,200 AMD, not 3,500 AMD",
+      "observed": "before placing: \"SAVE10 applied: 10% off\" · \"Discount (SAVE10)\" \"−350 AMD\" · Total 3,150 AMD. Confirmation: \"Order placed! Your order number is FM-100002. …\" with no total shown. Order history: \"FM-100002 · Received · Alans Kitchen · 19 Nov 2026 · 3,150 AMD\". The discount is kept on the order (not 3,500), but the amount is 3,150, not 3,200.",
+      "steps": [
+        "Sign in as a customer and empty the cart",
+        "Open https://foodme-hakobjulfayan.onrender.com/chef/24 (Alans Kitchen: delivery 500 AMD, free from 5,000 AMD) and add 1 × Chicken curry rice & vegetables (3,000 AMD)",
+        "Go to checkout and choose DELIVERY; fill in the delivery details",
+        "Type SAVE10 in the promo code field and press Apply",
+        "Place the order, then open the order in the customer's order history"
+      ],
+      "evidence": [
+        "execution.md#scrum-7-tc-14",
+        "results.json: SCRUM-7-TC-14: failed: Error: expect(locator).toContainText(expected) failed Locator: getByRole('complementary') Expected pattern: /Total\\s*3,200 AMD/ Received string: \"Your items1×Chicken curry rice & vegetables3,000 AMDPromo codeApplySAVE10 applied: 10% offSubt"
+      ],
+      "observed_at": "2026-11-19T12:27:29Z",
+      "priority": "High",
+      "priority_reason": "High: wrong amount on a placed order / checkout total (jira skill: blocks or breaks checkout)",
+      "status": "filed",
+      "decision": {
+        "by": "Hakob Julfayan",
+        "at": "2026-11-19T13:06:32Z",
+        "note": "file 1-4 (bug 1: filed together with TC-02)"
+      },
+      "jira": {
+        "key": "SCRUM-8",
+        "url": "https://julfayanhakob91.atlassian.net/browse/SCRUM-8",
+        "sprint": "none: filed directly on the user's request, without assignToSprint"
+      },
+      "triage": {
+        "run": "triage/runs/SCRUM-8",
+        "candidate": "H-1",
+        "rating": "confirmed",
+        "at": "2026-11-20T11:03:01Z"
+      }
+    }
+  ]
+}
