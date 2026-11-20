@@ -1,0 +1,108 @@
+{
+  "run": "SCRUM-8",
+  "brief": "02",
+  "topic": "glitchtip-history",
+  "source": "glitchtip",
+  "status": "done",
+  "window": { "from": "2026-11-13T00:00:00Z", "to": "2026-11-20T11:30:00Z" },
+  "observations": [
+    {
+      "id": "O-02-1",
+      "what": "WEB-6 'load promotions' issue: 42 events, first seen 11:51:37Z in the focus window, last seen 2026-11-20",
+      "quote": "\"title\":\"Error: Storefront background task failed: load promotions\",\"firstSeen\":\"2026-11-19T11:51:37.538Z\",\"lastSeen\":\"2026-11-20T10:19:44.677Z\"",
+      "artifact": "artifacts/02-glitchtip-issues-web.json",
+      "at": "2026-11-19T11:51:37Z",
+      "query": "glitchtip_issues; WEB-6 (8909742)"
+    },
+    {
+      "id": "O-02-2",
+      "what": "WEB-6 latest event: handled generic error, in-app frames r/uu in index-C0mctjQc.js, request URL is the site root, no API request or HTTP status for promo",
+      "quote": "\"mechanism\": {\"type\": \"generic\", \"handled\": true}",
+      "artifact": "artifacts/02-glitchtip-8909742.json",
+      "at": "2026-11-20T10:19:44Z",
+      "query": "glitchtip_latest_event 8909742"
+    },
+    {
+      "id": "O-02-3",
+      "what": "WEB-9 'restore saved cart' issue: 40 events, first seen 12:45:58Z in the focus window",
+      "quote": "\"title\":\"Error: Storefront background task failed: restore saved cart\",\"firstSeen\":\"2026-11-19T12:45:58.503Z\",\"lastSeen\":\"2026-11-20T09:02:37.369Z\"",
+      "artifact": "artifacts/02-glitchtip-issues-web.json",
+      "at": "2026-11-19T12:45:58Z",
+      "query": "glitchtip_issues; WEB-9 (8910028)"
+    },
+    {
+      "id": "O-02-4",
+      "what": "WEB-9 latest event: handled generic error on /checkout page, no API call or promo/order text",
+      "quote": "\"request\": {\"method\": null, \"url\": \"https://foodme-hakobjulfayan.onrender.com/checkout\"}",
+      "artifact": "artifacts/02-glitchtip-8910028.json",
+      "at": "2026-11-20T09:02:37Z",
+      "query": "glitchtip_latest_event 8910028"
+    },
+    {
+      "id": "O-02-5",
+      "what": "BACKEND-6: single event on POST /api/order, DB not-null violation on order_dish_addition (event is 4 min before the focus window, 35 min before first_seen, env tag 'local')",
+      "quote": "\"culprit\": \"POST /api/order\"",
+      "artifact": "artifacts/02-glitchtip-8909703.json",
+      "at": "2026-11-19T11:43:50Z",
+      "query": "glitchtip_latest_event 8909703"
+    },
+    {
+      "id": "O-02-6",
+      "what": "BACKEND-6 error text",
+      "quote": "ERROR: null value in column \\\"id\\\" of relation \\\"order_dish_addition\\\" violates not-null constraint",
+      "artifact": "artifacts/02-glitchtip-8909703.json",
+      "at": "2026-11-19T11:43:50Z",
+      "query": "glitchtip_latest_event 8909703"
+    },
+    {
+      "id": "O-02-7",
+      "what": "Admin project returned no issues",
+      "quote": "// Result: no issue in the response had project.slug \"admin\".",
+      "artifact": "artifacts/02-glitchtip-issues-admin.json",
+      "at": "",
+      "query": "glitchtip_issues"
+    },
+    {
+      "id": "O-02-8",
+      "what": "WEB-7 'sync menu prices' first seen 12:29:37Z in the focus window (not a keyword match, latest event not fetched)",
+      "quote": "\"title\":\"Error: Storefront background task failed: sync menu prices\",\"firstSeen\":\"2026-11-19T12:29:37.627Z\"",
+      "artifact": "artifacts/02-glitchtip-issues-web.json",
+      "at": "2026-11-19T12:29:37Z",
+      "query": "glitchtip_issues; WEB-7 (8909919)"
+    },
+    {
+      "id": "O-02-9",
+      "what": "WEB-8 'check delivery availability' first seen 12:37:37Z in the focus window (not fetched in detail)",
+      "quote": "\"title\":\"Error: Storefront background task failed: check delivery availability\",\"firstSeen\":\"2026-11-19T12:37:37.206Z\"",
+      "artifact": "artifacts/02-glitchtip-issues-web.json",
+      "at": "2026-11-19T12:37:37Z",
+      "query": "glitchtip_issues; WEB-8 (8909977)"
+    },
+    {
+      "id": "O-02-10",
+      "what": "BACKEND-5 (FlakyHeartbeatJob simulated failure) last seen 12:45:58Z, inside the focus window",
+      "quote": "\"title\":\"IllegalStateException: Simulated failure during chef availability sync\",\"firstSeen\":\"2026-10-27T11:44:06.937Z\",\"lastSeen\":\"2026-11-19T12:45:58.740Z\"",
+      "artifact": "artifacts/02-glitchtip-issues-backend.json",
+      "at": "2026-11-19T12:45:58Z",
+      "query": "glitchtip_issues; BACKEND-5 (8692766)"
+    }
+  ],
+  "answers": [
+    {
+      "question": "Is there any issue in backend, web or admin matching promo / discount / checkout / cart / orders paths in the window?",
+      "answer": "yes",
+      "observations": ["O-02-1", "O-02-2", "O-02-3", "O-02-4", "O-02-5", "O-02-7"]
+    },
+    {
+      "question": "Is there any event between 2026-11-19T11:48Z and 12:58Z in any project, and what are they?",
+      "answer": "yes",
+      "observations": ["O-02-1", "O-02-3", "O-02-8", "O-02-9", "O-02-10"]
+    },
+    {
+      "question": "Do any matching events show an exception or error text on the promo apply or order placement request?",
+      "answer": "no",
+      "observations": ["O-02-2", "O-02-4", "O-02-5", "O-02-6"]
+    }
+  ],
+  "obstacles": []
+}

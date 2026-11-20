@@ -1,0 +1,30 @@
+{
+  "run": "SCRUM-8",
+  "brief": "01",
+  "topic": "repro",
+  "source": "playwright",
+  "status": "done",
+  "window": { "from": "2026-11-20T10:44:38Z", "to": "2026-11-20T10:46:00Z" },
+  "observations": [
+    {"id": "O-01-1", "what": "Cart empty and no promo/discount shown before cleaning; signed in as Hakob Julfayan", "quote": "Nothing to check out / Your cart is empty. Browse chefs and add something delicious. (no items, no promo, no discount line)", "artifact": "artifacts/01-page-text.txt", "at": "2026-11-20T10:44:43Z", "query": "https://foodme-hakobjulfayan.onrender.com/checkout"},
+    {"id": "O-01-2", "what": "Checkout summary before promo with Delivery", "quote": "Subtotal 3,000 AMD ; Delivery 500 AMD ; Add 2,000 AMD more for free delivery. ; Total 3,500 AMD", "artifact": "artifacts/01-page-text.txt", "at": "2026-11-20T10:45:06Z", "query": "https://foodme-hakobjulfayan.onrender.com/checkout"},
+    {"id": "O-01-3", "what": "First SAVE10 apply: summary text", "quote": "SAVE10 applied: 10% off ; Subtotal 3,000 AMD ; Delivery 500 AMD ; Discount (SAVE10) −350 AMD ; Total 3,150 AMD", "artifact": "artifacts/01-page-text.txt", "at": "2026-11-20T10:45:18Z", "query": "https://foodme-hakobjulfayan.onrender.com/checkout"},
+    {"id": "O-01-4", "what": "Apply request body sends subtotal and deliveryMethod, no delivery fee or total", "quote": "\"requestBody\":{\"code\":\"SAVE10\",\"chefId\":24,\"subtotal\":3000,\"deliveryMethod\":\"DELIVERY\"}", "artifact": "artifacts/01-network.json", "at": "2026-11-20T10:45:18Z", "query": "POST /api/customer/promo/apply"},
+    {"id": "O-01-5", "what": "Apply response body fields", "quote": "\"responseBody\":{\"code\":\"SAVE10\",\"status\":\"APPLIED\",\"percent\":10,\"missingAmount\":null,\"discount\":350.0,\"deliveryPrice\":500.0,\"total\":3150.0}", "artifact": "artifacts/01-network.json", "at": "2026-11-20T10:45:18Z", "query": "POST /api/customer/promo/apply"},
+    {"id": "O-01-6", "what": "delivery-price call request and response", "quote": "\"requestBody\":{\"chefId\":24,\"subtotal\":3000,\"deliveryMethod\":\"DELIVERY\"},\"responseBody\":{\"deliveryPrice\":500.0,\"freeDeliveryFrom\":5000.0}", "artifact": "artifacts/01-network.json", "at": "2026-11-20T10:45:07Z", "query": "POST /api/order/delivery-price"},
+    {"id": "O-01-7", "what": "Second apply after removing code: summary text identical", "quote": "SAVE10 applied: 10% off ; Subtotal 3,000 AMD ; Delivery 500 AMD ; Discount (SAVE10) −350 AMD ; Total 3,150 AMD", "artifact": "artifacts/01-page-text.txt", "at": "2026-11-20T10:45:37Z", "query": "https://foodme-hakobjulfayan.onrender.com/checkout"},
+    {"id": "O-01-8", "what": "Network tool listed only one promo/apply request (second apply not captured)", "quote": "The second apply (step 6) was not listed by the tool; only one promo/apply entry (#179, date header 2026-11-20T10:45:18Z) exists.", "artifact": "artifacts/01-network.json", "at": "2026-11-20T10:45:37Z", "query": "browser_network_requests filter promo"},
+    {"id": "O-01-9", "what": "No console errors or warnings", "quote": "Total messages: 0 (Errors: 0, Warnings: 0)", "artifact": "artifacts/01-console.txt", "at": "2026-11-20T10:46:00Z", "query": "browser_console_messages level=warning all=true"}
+  ],
+  "answers": [
+    {"question": "Before cleaning, was any promo code or discount already present on the account/cart?", "answer": "no", "observations": ["O-01-1"]},
+    {"question": "After applying SAVE10 on the 3,000 AMD + 500 AMD delivery cart, what Discount and Total does the page show?", "answer": "yes", "observations": ["O-01-3"]},
+    {"question": "Does any /api/** response for the apply call contain a discount, base, subtotal, delivery or total field, and with what values?", "answer": "yes", "observations": ["O-01-5"]},
+    {"question": "Do the request bodies of the apply call send the delivery fee, delivery method or a total to the server, and with what values?", "answer": "yes", "observations": ["O-01-4", "O-01-6"]},
+    {"question": "Did the second apply (step 6) give the same Discount and Total as the first?", "answer": "yes", "observations": ["O-01-3", "O-01-7", "O-01-8"]},
+    {"question": "Are there console errors or warnings during the steps?", "answer": "no", "observations": ["O-01-9"]}
+  ],
+  "obstacles": [
+    {"what": "Step 7 and question 4/5: request/response bodies of the second apply", "problem": "The second apply (step 6) was not listed by the tool; only one promo/apply entry (#179, date header 2026-11-20T10:45:18Z) exists.", "needs": "Nothing required; the second apply is evidenced by page text only."}
+  ]
+}
