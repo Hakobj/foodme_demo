@@ -1,0 +1,89 @@
+{
+  "run": "SCRUM-8",
+  "brief": "09",
+  "topic": "loki-test-window",
+  "source": "loki",
+  "status": "done",
+  "window": { "from": "2026-11-20T10:44:00Z", "to": "2026-11-20T11:05:00Z" },
+  "observations": [
+    {
+      "id": "O-09-1",
+      "what": "promo.applied SAVE10 at 10:50:25Z logs discount 300 (TAKEAWAY, subtotal 3000)",
+      "quote": "10:50:25Z am.foodme.backend.service.OrderService | promo.applied code=SAVE10 status=APPLIED discount=300.0",
+      "artifact": "artifacts/09-loki-promo.txt",
+      "at": "2026-11-20T10:50:25Z",
+      "query": "{app=\"foodme-backend\"} |~ \"promo|delivery-price\" 2026-11-20T10:44:00Z-11:05:00Z"
+    },
+    {
+      "id": "O-09-2",
+      "what": "promo.applied SAVE10 at 10:50:43Z logs discount 350 (DELIVERY, subtotal 3000)",
+      "quote": "10:50:43Z am.foodme.backend.service.OrderService | promo.applied code=SAVE10 status=APPLIED discount=350.0",
+      "artifact": "artifacts/09-loki-promo.txt",
+      "at": "2026-11-20T10:50:43Z",
+      "query": "{app=\"foodme-backend\"} |~ \"promo|delivery-price\" 2026-11-20T10:44:00Z-11:05:00Z"
+    },
+    {
+      "id": "O-09-3",
+      "what": "promo.applied SAVE10 at 10:51:31Z logs discount 450 (DELIVERY, subtotal 4000)",
+      "quote": "10:51:31Z am.foodme.backend.service.OrderService | promo.applied code=SAVE10 status=APPLIED discount=450.0",
+      "artifact": "artifacts/09-loki-promo.txt",
+      "at": "2026-11-20T10:51:31Z",
+      "query": "{app=\"foodme-backend\"} |~ \"promo|delivery-price\" 2026-11-20T10:44:00Z-11:05:00Z"
+    },
+    {
+      "id": "O-09-4",
+      "what": "HTTP promo/apply TAKEAWAY 3000: request and response bodies",
+      "quote": "req.body: {\"code\":\"SAVE10\",\"chefId\":24,\"subtotal\":3000,\"deliveryMethod\":\"TAKEAWAY\"} | res.body: {\"code\":\"SAVE10\",\"status\":\"APPLIED\",\"percent\":10,\"missingAmount\":null,\"discount\":300.0,\"deliveryPrice\":0.0,\"total\":2700.0}",
+      "artifact": "artifacts/09-loki-promo.txt",
+      "at": "2026-11-20T10:50:25Z",
+      "query": "same LogQL"
+    },
+    {
+      "id": "O-09-5",
+      "what": "HTTP promo/apply DELIVERY 3000: request and response bodies",
+      "quote": "req.body: {\"code\":\"SAVE10\",\"chefId\":24,\"subtotal\":3000,\"deliveryMethod\":\"DELIVERY\"} | res.body: {\"code\":\"SAVE10\",\"status\":\"APPLIED\",\"percent\":10,\"missingAmount\":null,\"discount\":350.0,\"deliveryPrice\":500.0,\"total\":3150.0}",
+      "artifact": "artifacts/09-loki-promo.txt",
+      "at": "2026-11-20T10:50:43Z",
+      "query": "same LogQL"
+    },
+    {
+      "id": "O-09-6",
+      "what": "HTTP promo/apply DELIVERY 4000: request and response bodies",
+      "quote": "req.body: {\"code\":\"SAVE10\",\"chefId\":24,\"subtotal\":4000,\"deliveryMethod\":\"DELIVERY\"} | res.body: {\"code\":\"SAVE10\",\"status\":\"APPLIED\",\"percent\":10,\"missingAmount\":null,\"discount\":450.0,\"deliveryPrice\":500.0,\"total\":4050.0}",
+      "artifact": "artifacts/09-loki-promo.txt",
+      "at": "2026-11-20T10:51:31Z",
+      "query": "same LogQL"
+    },
+    {
+      "id": "O-09-7",
+      "what": "Count per logger over the window: http 9 (5 delivery-price + 4 promo/apply), OrderService 4, total 13",
+      "quote": "# Count per logger (13 lines): am.foodme.backend.observability.http = 9 (5 delivery-price + 4 promo/apply); am.foodme.backend.service.OrderService = 4 (promo.applied)",
+      "artifact": "artifacts/09-loki-promo.txt",
+      "at": "",
+      "query": "same LogQL"
+    },
+    {
+      "id": "O-09-8",
+      "what": "Earlier promo.applied at 10:45:18Z (before the 10:50-10:52 range) also logs 350 for DELIVERY 3000",
+      "quote": "10:45:18Z am.foodme.backend.service.OrderService | promo.applied code=SAVE10 status=APPLIED discount=350.0",
+      "artifact": "artifacts/09-loki-promo.txt",
+      "at": "2026-11-20T10:45:18Z",
+      "query": "same LogQL"
+    },
+    {
+      "id": "O-09-9",
+      "what": "No promo.applied line contains stacked or previous fields; all four lines have only code, status, discount",
+      "quote": "promo.applied code=SAVE10 status=APPLIED discount=450.0",
+      "artifact": "artifacts/09-loki-promo.txt",
+      "at": "",
+      "query": "same LogQL"
+    }
+  ],
+  "answers": [
+    { "question": "Are there `promo.applied` lines between 10:50:00Z and 10:52:00Z, and what code, status and discount do they log?", "answer": "yes", "observations": ["O-09-1", "O-09-2", "O-09-3"] },
+    { "question": "Are there HTTP log lines for POST /api/customer/promo/apply between 10:50:00Z and 10:52:00Z, and what request subtotal / deliveryMethod and response discount / deliveryPrice / total do they show?", "answer": "yes", "observations": ["O-09-4", "O-09-5", "O-09-6"] },
+    { "question": "How many POST /api/order/delivery-price lines are in the window?", "answer": "yes", "observations": ["O-09-7"] },
+    { "question": "Is any `promo.applied` line in the window logged with `stacked` or `previous` fields?", "answer": "no", "observations": ["O-09-9"] }
+  ],
+  "obstacles": []
+}

@@ -1,0 +1,57 @@
+# commit ff70db0a38bacefa34b0cbf6ff3a8b3e4ceb17dd (perf(backend): cache applied promo per customer (KAN-27)); read via git show, UTC 2026-11-20
+## apps/web/src/App.tsx 4-16
+     4	import { router } from "@/router";
+     5	
+     6	const queryClient = new QueryClient({
+     7	  defaultOptions: {
+     8	    queries: {
+     9	      staleTime: 30_000,
+    10	      retry: 1,
+    11	    },
+    12	  },
+    13	});
+    14	
+    15	export default function App() {
+    16	  return (
+## apps/web/src/pages/Checkout/index.tsx 25,40-48,86,176-187
+    25	  const [promoCode, setPromoCode] = useState<string | null>(null);
+    40	  const promoQuery = useQuery({
+    41	    queryKey: ["promo", promoCode, chefId, subtotal, deliveryMethod],
+    42	    queryFn: () =>
+    43	      foodmeApi.applyPromo({ code: promoCode as string, chefId: chefId as number, subtotal, deliveryMethod }),
+    44	    enabled: promoCode !== null && chefId !== undefined && subtotal > 0,
+    45	    retry: false,
+    46	  });
+    47	  const appliedPromo =
+    48	    promoCode !== null && promoQuery.data?.status === "APPLIED" && !promoQuery.isFetching ? promoQuery.data : undefined;
+    86	      ...(appliedPromo ? { promoCode: appliedPromo.code, discount: appliedPromo.discount } : {}),
+   176	              <PromoCodeField
+   177	                result={promoCode !== null ? promoQuery.data : undefined}
+   178	                isLoading={promoCode !== null && promoQuery.isFetching}
+   179	                isError={promoCode !== null && promoQuery.isError}
+   180	                onApply={(code) => setPromoCode(code.toUpperCase())}
+   181	                onRemove={() => setPromoCode(null)}
+   182	              />
+   183	              <CheckoutPriceSummary
+   184	                embedded
+   185	                subtotal={subtotal}
+   186	                discount={appliedPromo?.discount ?? 0}
+   187	                promoCode={appliedPromo?.code}
+## apps/web/src/components/sections/checkout-price-summary.tsx 26,49-54
+    26	  const total = subtotal - discount + deliveryPrice;
+    49	      {discount > 0 && (
+    50	        <div className="flex items-center justify-between text-zinc-500">
+    51	          <span>{t("promo.discount", { code: promoCode })}</span>
+    52	          <span className="tabular-nums font-semibold text-emerald-700">−{formatAmd(discount)}</span>
+    53	        </div>
+    54	      )}
+## apps/web/src/components/sections/promo-code-field.tsx 22-26,62-65
+    22	  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    23	    event.preventDefault();
+    24	    const code = value.trim();
+    25	    if (code) onApply(code);
+    26	  };
+    62	              onClick={() => {
+    63	                setValue("");
+    64	                onRemove();
+    65	              }}

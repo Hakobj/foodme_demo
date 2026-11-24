@@ -1,0 +1,58 @@
+# apps/web checkout-price-summary.tsx lines 1-55, 2026-11-20T10:50:30Z
+     1	import { formatAmd } from "@/lib/utils";
+     2	
+     3	interface CheckoutPriceSummaryProps {
+     4	  subtotal: number;
+     5	  deliveryPrice: number;
+     6	  freeDeliveryFrom: number;
+     7	  isLoading?: boolean;
+     8	  isError?: boolean;
+     9	  embedded?: boolean;
+    10	}
+    11	
+    12	export function CheckoutPriceSummary({
+    13	  subtotal,
+    14	  deliveryPrice,
+    15	  freeDeliveryFrom,
+    16	  isLoading = false,
+    17	  isError = false,
+    18	  embedded = false,
+    19	}: CheckoutPriceSummaryProps) {
+    20	  const total = subtotal + deliveryPrice;
+    21	  const remaining = freeDeliveryFrom - subtotal;
+    22	
+    23	  const body = (
+    24	    <div className={embedded ? "space-y-2.5 border-t border-zinc-100 px-5 py-5 text-sm" : "space-y-2.5 p-5 text-sm"}>
+    25	      <div className="flex items-center justify-between text-zinc-500">
+    26	        <span>Subtotal</span>
+    27	        <span className="tabular-nums text-zinc-700">{formatAmd(subtotal)}</span>
+    28	      </div>
+    29	      <div className="flex items-center justify-between text-zinc-500">
+    30	        <span>Delivery</span>
+    31	        <span className="tabular-nums text-zinc-700" aria-live="polite">
+    32	          {isLoading ? (
+    33	            <span className="text-zinc-500">Calculating…</span>
+    34	          ) : isError ? (
+    35	            <span className="font-semibold text-red-600">Unavailable</span>
+    36	          ) : deliveryPrice === 0 ? (
+    37	            <span className="font-semibold text-emerald-700">Free</span>
+    38	          ) : (
+    39	            formatAmd(deliveryPrice)
+    40	          )}
+    41	        </span>
+    42	      </div>
+    43	      {!isLoading && !isError && deliveryPrice > 0 && remaining > 0 && (
+    44	        <div className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800 ring-1 ring-amber-100">
+    45	          Add {formatAmd(remaining)} more for free delivery.
+    46	        </div>
+    47	      )}
+    48	      <div className="flex items-center justify-between border-t border-zinc-100 pt-3">
+    49	        <span className="text-sm font-semibold text-zinc-900">Total</span>
+    50	        <span className="text-sm font-semibold tabular-nums text-zinc-900">
+    51	          {isLoading || isError ? "—" : formatAmd(total)}
+    52	        </span>
+    53	      </div>
+    54	    </div>
+    55	  );
+# grep promo|discount in apps/web/src
+apps/web/src/lib/flakyHeartbeat.ts:18:  "load promotions",

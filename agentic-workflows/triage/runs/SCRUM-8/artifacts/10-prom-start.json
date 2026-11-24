@@ -1,0 +1,5 @@
+# PromQL: process_start_time_seconds and up{app="foodme-backend"} | range 2026-11-20T10:44:00Z-11:05:00Z step 30s | query time 2026-11-20T10:56:17Z
+# process_start_time_seconds: 35 samples, first [1795171440] last [1795172460], every value "1795169581.067" (= 2026-11-20T10:13:01Z)
+# up: 35 samples, first [1795171440] last [1795172460], every value "1"
+{"metric":{"__name__":"process_start_time_seconds","app":"foodme-backend","instance":"foodme-hakobjulfayan.onrender.com:443","job":"foodme-backend"},"first":[1795171440,"1795169581.067"],"last":[1795172460,"1795169581.067"]}
+{"metric":{"__name__":"up","app":"foodme-backend","instance":"foodme-hakobjulfayan.onrender.com:443","job":"foodme-backend"},"first":[1795171440,"1"],"last":[1795172460,"1"]}
