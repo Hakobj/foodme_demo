@@ -12,6 +12,8 @@ FoodMe is a food-ordering demo used as a **QA course project**. It is a monorepo
 - `infra/monitoring` — Prometheus + Loki + Grafana + Grafana MCP in one container (see `infra/monitoring/README.md`)
 - `tests-python` — Python port of the test suites (pytest + requests + Playwright), tests only: `unit/`, `integration/`, `e2e/`
 - `clients/`, `pages/`, `support/` (repo root) — API clients, page objects and helpers for `tests-python`; `pytest.ini`, `pyproject.toml`, `requirements*.txt` and `.venv` are at the repo root too. Run pytest from the repo root (see `TESTING.md`)
+- `selection/` — Selection Based Testing for the Python e2e suite: impact map (`selection/impact-map.json`, rebuilt nightly), selector, evaluation (`selection/README.md`, `selection/EVALUATION.md`). Changing `selection/*.py` or the e2e conftest makes every PR run the whole suite
+- `ci/triage/` — scripts of the daily triage workflow (`.github/workflows/triage-daily.yml`): GlitchTip → triage pipeline in CI mode → Jira + Telegram (`ci/triage/README.md`)
 
 App-specific commands, conventions and architecture live in path-scoped rules that load when you work in that app: `.claude/rules/backend.md`, `.claude/rules/web.md`, `.claude/rules/admin.md`. Testing rules: `.claude/rules/web-testing.md`, `.claude/rules/admin-testing.md`, `.claude/rules/db-testing.md`.
 

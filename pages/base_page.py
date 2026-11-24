@@ -14,6 +14,11 @@ class BasePage:
         self.page.goto(self.PATH)
         return self
 
+    def open_path(self, path: str) -> Self:
+        """Opens any path of the app, e.g. an unknown route to check the fallback redirect."""
+        self.page.goto(path)
+        return self
+
     def reload(self) -> Self:
         self.page.reload()
         return self

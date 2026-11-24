@@ -5,7 +5,7 @@ src = ["."]
 target-version = "py310"
 line-length = 120
 # Only the Python test suite; the rest of the monorepo (apps/, infra/, .claude/ hooks) is out of scope.
-include = ["clients/**/*.py", "pages/**/*.py", "support/**/*.py", "tests-python/**/*.py"]
+include = ["clients/**/*.py", "pages/**/*.py", "support/**/*.py", "selection/**/*.py", "ci/**/*.py", "tests-python/**/*.py"]
 extend-exclude = [".venv", "test-results"]
 
 [tool.ruff.lint]
@@ -24,11 +24,11 @@ select = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["clients", "pages", "support"]
+known-first-party = ["clients", "pages", "support", "selection", "ci"]
 
 [tool.mypy]
 python_version = "3.10"
-files = ["clients", "pages", "support", "tests-python"]
+files = ["clients", "pages", "support", "selection", "ci", "tests-python"]
 mypy_path = "tests-python"
 exclude = ["\\.venv/", "test-results/"]
 explicit_package_bases = true

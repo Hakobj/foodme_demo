@@ -77,3 +77,9 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+
+# Selection Based Testing outputs (selection/README.md)
+/selection.json
+/selection.md
+/selection-additions.json
+selection/eval/junit/

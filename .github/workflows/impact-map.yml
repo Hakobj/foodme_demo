@@ -1,0 +1,56 @@
+name: Impact map
+
+# Rebuilds selection/impact-map.json (what each e2e test executes) from a full e2e run on main,
+# and opens a PR when it changed. The selective e2e workflow warns when the map is older than
+# selection/rules.py MAP_MAX_AGE_DAYS. See selection/README.md.
+on:
+  schedule:
+    - cron: "30 2 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: impact-map
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: main, fetch-depth: 0 } # history replay needs the commits
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: npm ci --prefix apps/web && npm ci --prefix apps/admin
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip, cache-dependency-path: requirements.txt }
+      - run: pip install -r requirements.txt
+      - run: playwright install --with-deps chromium
+      - name: Full e2e run with impact collection
+        run: |
+          rm -f selection/impact-map.json  # rebuild from scratch: no footprints of deleted tests
+          pytest -m e2e --collect-impact=selection/impact-map.json --junitxml=full.xml
+      - name: Replay recent history (cost of the selection over the last 30 commits)
+        run: python -m selection history --commits 30 > history.json && jq 'del(.rows)' history.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: impact-map
+          path: |
+            selection/impact-map.json
+            full.xml
+            history.json
+      - name: Open a PR when the map changed
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: bot/impact-map
+          commit-message: "chore(selection): refresh e2e impact map"
+          title: "chore(selection): refresh e2e impact map"
+          body: |
+            Nightly rebuild of `selection/impact-map.json` from a full e2e run on `main`.
+            All tests must pass for the footprints to be complete; see the `impact-map` artifact.
+          add-paths: selection/impact-map.json
+          delete-branch: true

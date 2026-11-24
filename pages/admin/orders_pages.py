@@ -46,6 +46,10 @@ class OrderShowPage(BasePage):
         self.customer_review = page.get_by_role("region", name="Customer review")
         self.no_review_text = self.customer_review.get_by_text("No review yet")
 
+    def detail(self, value: str) -> Locator:
+        """A value in the order details block (receiver, phone, email, payment, delivery method)."""
+        return self.page.get_by_text(value, exact=True).first
+
     def review_stars(self, rating: int) -> Locator:
         return self.customer_review.get_by_role("img", name=f"Rated {rating} out of 5")
 

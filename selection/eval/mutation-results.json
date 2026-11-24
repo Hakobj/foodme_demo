@@ -1,0 +1,435 @@
+{
+ "meta": {
+  "commit": "61d978466eb0e0e8d74a21c1c0fde69389f7825d",
+  "map_commit": "61d978466eb0e0e8d74a21c1c0fde69389f7825d",
+  "generated_at": "2026-11-24T12:15:44Z",
+  "baseline_tests": 138,
+  "baseline_failed": []
+ },
+ "totals": {
+  "mutations": 16,
+  "with_ground_truth": 13,
+  "killed_by_full_suite": 11,
+  "survived_full_suite": 2,
+  "detected_by_selection": 11,
+  "fault_detection_rate": 1.0,
+  "mean_test_recall": 0.982,
+  "escaped_tests": 1,
+  "mean_selection_ratio": 0.388,
+  "median_selection_ratio": 0.315,
+  "mean_time_saved": 0.533,
+  "run_all_decisions": 1
+ },
+ "rows": [
+  {
+   "id": "web-explore-kitchen-search",
+   "file": "apps/web/src/pages/Explore/index.tsx",
+   "description": "Explore search no longer matches the kitchen",
+   "ground_truth": true,
+   "mode": "subset",
+   "selected": 49,
+   "total": 138,
+   "selected_minutes": 1.9,
+   "total_minutes": 3.99,
+   "effects": [
+    "impact map"
+   ],
+   "full_run_seconds": 217,
+   "killed": false,
+   "failing": [],
+   "failing_selected": [],
+   "escaped": [],
+   "detected": null,
+   "recall": null
+  },
+  {
+   "id": "web-cart-free-delivery-boundary",
+   "file": "apps/web/src/components/sections/user-cart.tsx",
+   "description": "Cart charges delivery at exactly the free-delivery threshold",
+   "ground_truth": true,
+   "mode": "subset",
+   "selected": 63,
+   "total": 138,
+   "selected_minutes": 2.64,
+   "total_minutes": 3.99,
+   "effects": [
+    "impact map"
+   ],
+   "full_run_seconds": 219,
+   "killed": true,
+   "failing": [
+    "tests-python/e2e/web/test_cart_totals.py::test_cart_summary_applies_free_delivery_threshold[chromium-2-5,000 AMD-Free-5,000 AMD-None]"
+   ],
+   "failing_selected": [
+    "tests-python/e2e/web/test_cart_totals.py::test_cart_summary_applies_free_delivery_threshold[chromium-2-5,000 AMD-Free-5,000 AMD-None]"
+   ],
+   "escaped": [],
+   "detected": true,
+   "recall": 1.0
+  },
+  {
+   "id": "web-modal-additions-price",
+   "file": "apps/web/src/components/sections/dish-modal.tsx",
+   "description": "Dish modal ignores addition prices in the live total",
+   "ground_truth": true,
+   "mode": "subset",
+   "selected": 63,
+   "total": 138,
+   "selected_minutes": 2.64,
+   "total_minutes": 3.99,
+   "effects": [
+    "impact map"
+   ],
+   "full_run_seconds": 248,
+   "killed": true,
+   "failing": [
+    "tests-python/e2e/admin/test_admin_catalog.py::test_dashboard_counts_chefs_dishes_and_orders[chromium]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_additions_raise_the_price[chromium-additions0-2,800 AMD]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_additions_raise_the_price[chromium-additions1-2,700 AMD]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_additions_raise_the_price[chromium-additions2-3,000 AMD]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_unchecking_an_addition_restores_the_price[chromium]"
+   ],
+   "failing_selected": [
+    "tests-python/e2e/web/test_dish_modal_details.py::test_additions_raise_the_price[chromium-additions0-2,800 AMD]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_additions_raise_the_price[chromium-additions1-2,700 AMD]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_additions_raise_the_price[chromium-additions2-3,000 AMD]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_unchecking_an_addition_restores_the_price[chromium]"
+   ],
+   "escaped": [
+    "tests-python/e2e/admin/test_admin_catalog.py::test_dashboard_counts_chefs_dishes_and_orders[chromium]"
+   ],
+   "detected": true,
+   "recall": 0.8
+  },
+  {
+   "id": "web-checkout-city-message",
+   "file": "apps/web/src/schemas/checkout-schema.ts",
+   "description": "Checkout validation message for city changed",
+   "ground_truth": true,
+   "mode": "subset",
+   "selected": 13,
+   "total": 138,
+   "selected_minutes": 0.9,
+   "total_minutes": 3.99,
+   "effects": [
+    "impact map"
+   ],
+   "full_run_seconds": 223,
+   "killed": true,
+   "failing": [
+    "tests-python/e2e/web/test_checkout_form.py::test_delivery_requires_city_and_street[chromium]"
+   ],
+   "failing_selected": [
+    "tests-python/e2e/web/test_checkout_form.py::test_delivery_requires_city_and_street[chromium]"
+   ],
+   "escaped": [],
+   "detected": true,
+   "recall": 1.0
+  },
+  {
+   "id": "web-tracking-accepted-copy",
+   "file": "apps/web/src/pages/Tracking/index.tsx",
+   "description": "Tracking title for ACCEPTED orders changed",
+   "ground_truth": true,
+   "mode": "subset",
+   "selected": 10,
+   "total": 138,
+   "selected_minutes": 0.31,
+   "total_minutes": 3.99,
+   "effects": [
+    "impact map"
+   ],
+   "full_run_seconds": 221,
+   "killed": true,
+   "failing": [
+    "tests-python/e2e/web/test_auth_and_tracking.py::test_order_status_on_tracking_and_order_history[chromium-statuses1-Preparing your order-Preparing]"
+   ],
+   "failing_selected": [
+    "tests-python/e2e/web/test_auth_and_tracking.py::test_order_status_on_tracking_and_order_history[chromium-statuses1-Preparing your order-Preparing]"
+   ],
+   "escaped": [],
+   "detected": true,
+   "recall": 1.0
+  },
+  {
+   "id": "web-header-search-trim",
+   "file": "apps/web/src/components/layout/header.tsx",
+   "description": "Header search no longer trims the query",
+   "ground_truth": true,
+   "mode": "subset",
+   "selected": 116,
+   "total": 138,
+   "selected_minutes": 3.37,
+   "total_minutes": 3.99,
+   "effects": [
+    "impact map"
+   ],
+   "full_run_seconds": 225,
+   "killed": true,
+   "failing": [
+    "tests-python/e2e/web/test_explore_search.py::test_empty_header_search_lists_all_chefs[chromium]"
+   ],
+   "failing_selected": [
+    "tests-python/e2e/web/test_explore_search.py::test_empty_header_search_lists_all_chefs[chromium]"
+   ],
+   "escaped": [],
+   "detected": true,
+   "recall": 1.0
+  },
+  {
+   "id": "web-amd-format",
+   "file": "apps/web/src/lib/utils.ts",
+   "description": "Prices formatted with the wrong locale (shared helper)",
+   "ground_truth": true,
+   "mode": "subset",
+   "selected": 116,
+   "total": 138,
+   "selected_minutes": 3.37,
+   "total_minutes": 3.99,
+   "effects": [
+    "impact map"
+   ],
+   "full_run_seconds": 296,
+   "killed": true,
+   "failing": [
+    "tests-python/e2e/web/test_auth_and_tracking.py::test_tracking_lists_items_chef_and_total[chromium]",
+    "tests-python/e2e/web/test_cart_totals.py::test_cart_subtotal_adds_up_different_dishes[chromium]",
+    "tests-python/e2e/web/test_cart_totals.py::test_cart_summary_applies_free_delivery_threshold[chromium-1-2,500 AMD-500 AMD-3,000 AMD-Add 2,500 AMD more for free delivery.]",
+    "tests-python/e2e/web/test_cart_totals.py::test_cart_summary_applies_free_delivery_threshold[chromium-2-5,000 AMD-Free-5,000 AMD-None]",
+    "tests-python/e2e/web/test_cart_totals.py::test_cart_summary_applies_free_delivery_threshold[chromium-3-7,500 AMD-Free-7,500 AMD-None]",
+    "tests-python/e2e/web/test_checkout_form.py::test_price_summary_for_delivery[chromium]",
+    "tests-python/e2e/web/test_checkout_form.py::test_price_summary_for_takeaway_has_free_delivery[chromium]",
+    "tests-python/e2e/web/test_chef_menu.py::test_chef_hero_shows_kitchen_delivery_terms_takeaway_and_phone[chromium]",
+    "tests-python/e2e/web/test_chef_menu.py::test_dish_card_shows_price_portion_and_description[chromium]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_add_button_price_follows_quantity[chromium-0-2,500 AMD]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_add_button_price_follows_quantity[chromium-1-5,000 AMD]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_add_button_price_follows_quantity[chromium-3-10,000 AMD]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_additions_raise_the_price[chromium-additions0-2,800 AMD]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_additions_raise_the_price[chromium-additions1-2,700 AMD]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_additions_raise_the_price[chromium-additions2-3,000 AMD]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_chosen_quantity_and_additions_reach_the_cart_line[chromium]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_unchecking_an_addition_restores_the_price[chromium]"
+   ],
+   "failing_selected": [
+    "tests-python/e2e/web/test_auth_and_tracking.py::test_tracking_lists_items_chef_and_total[chromium]",
+    "tests-python/e2e/web/test_cart_totals.py::test_cart_subtotal_adds_up_different_dishes[chromium]",
+    "tests-python/e2e/web/test_cart_totals.py::test_cart_summary_applies_free_delivery_threshold[chromium-1-2,500 AMD-500 AMD-3,000 AMD-Add 2,500 AMD more for free delivery.]",
+    "tests-python/e2e/web/test_cart_totals.py::test_cart_summary_applies_free_delivery_threshold[chromium-2-5,000 AMD-Free-5,000 AMD-None]",
+    "tests-python/e2e/web/test_cart_totals.py::test_cart_summary_applies_free_delivery_threshold[chromium-3-7,500 AMD-Free-7,500 AMD-None]",
+    "tests-python/e2e/web/test_checkout_form.py::test_price_summary_for_delivery[chromium]",
+    "tests-python/e2e/web/test_checkout_form.py::test_price_summary_for_takeaway_has_free_delivery[chromium]",
+    "tests-python/e2e/web/test_chef_menu.py::test_chef_hero_shows_kitchen_delivery_terms_takeaway_and_phone[chromium]",
+    "tests-python/e2e/web/test_chef_menu.py::test_dish_card_shows_price_portion_and_description[chromium]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_add_button_price_follows_quantity[chromium-0-2,500 AMD]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_add_button_price_follows_quantity[chromium-1-5,000 AMD]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_add_button_price_follows_quantity[chromium-3-10,000 AMD]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_additions_raise_the_price[chromium-additions0-2,800 AMD]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_additions_raise_the_price[chromium-additions1-2,700 AMD]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_additions_raise_the_price[chromium-additions2-3,000 AMD]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_chosen_quantity_and_additions_reach_the_cart_line[chromium]",
+    "tests-python/e2e/web/test_dish_modal_details.py::test_unchecking_an_addition_restores_the_price[chromium]"
+   ],
+   "escaped": [],
+   "detected": true,
+   "recall": 1.0
+  },
+  {
+   "id": "web-checkout-note-placeholder",
+   "file": "apps/web/src/components/sections/order-delivery-form.tsx",
+   "description": "Checkout note field placeholder changed",
+   "ground_truth": true,
+   "mode": "subset",
+   "selected": 20,
+   "total": 138,
+   "selected_minutes": 1.39,
+   "total_minutes": 3.99,
+   "effects": [
+    "impact map"
+   ],
+   "full_run_seconds": 250,
+   "killed": true,
+   "failing": [
+    "tests-python/e2e/web/test_checkout_form.py::test_order_carries_note_address_and_receiver[chromium]"
+   ],
+   "failing_selected": [
+    "tests-python/e2e/web/test_checkout_form.py::test_order_carries_note_address_and_receiver[chromium]"
+   ],
+   "escaped": [],
+   "detected": true,
+   "recall": 1.0
+  },
+  {
+   "id": "web-footer-disclaimer",
+   "file": "apps/web/src/components/layout/footer.tsx",
+   "description": "Footer disclaimer text changed (layout shared by every page)",
+   "ground_truth": true,
+   "mode": "subset",
+   "selected": 116,
+   "total": 138,
+   "selected_minutes": 3.37,
+   "total_minutes": 3.99,
+   "effects": [
+    "impact map"
+   ],
+   "full_run_seconds": 223,
+   "killed": true,
+   "failing": [
+    "tests-python/e2e/web/test_auth_and_tracking.py::test_guest_footer_has_explore_orders_and_sign_in_links[chromium]"
+   ],
+   "failing_selected": [
+    "tests-python/e2e/web/test_auth_and_tracking.py::test_guest_footer_has_explore_orders_and_sign_in_links[chromium]"
+   ],
+   "escaped": [],
+   "detected": true,
+   "recall": 1.0
+  },
+  {
+   "id": "admin-orderlist-receiver",
+   "file": "apps/admin/src/pages/orders/OrderList.jsx",
+   "description": "Orders list shows the e-mail in the Receiver column",
+   "ground_truth": true,
+   "mode": "subset",
+   "selected": 24,
+   "total": 138,
+   "selected_minutes": 0.71,
+   "total_minutes": 3.99,
+   "effects": [
+    "impact map"
+   ],
+   "full_run_seconds": 231,
+   "killed": true,
+   "failing": [
+    "tests-python/e2e/admin/test_admin_catalog.py::test_orders_list_shows_chef_receiver_and_status[chromium]"
+   ],
+   "failing_selected": [
+    "tests-python/e2e/admin/test_admin_catalog.py::test_orders_list_shows_chef_receiver_and_status[chromium]"
+   ],
+   "escaped": [],
+   "detected": true,
+   "recall": 1.0
+  },
+  {
+   "id": "admin-chef-delivery-label",
+   "file": "apps/admin/src/pages/chefs/ChefEdit.jsx",
+   "description": "Chef edit form label renamed",
+   "ground_truth": true,
+   "mode": "subset",
+   "selected": 5,
+   "total": 138,
+   "selected_minutes": 0.23,
+   "total_minutes": 3.99,
+   "effects": [
+    "impact map"
+   ],
+   "full_run_seconds": 255,
+   "killed": true,
+   "failing": [
+    "tests-python/e2e/admin/test_admin_catalog.py::test_chef_edit_form_is_prefilled[chromium]",
+    "tests-python/e2e/admin/test_admin_catalog.py::test_saving_chef_delivery_price_updates_the_storefront_api[chromium]"
+   ],
+   "failing_selected": [
+    "tests-python/e2e/admin/test_admin_catalog.py::test_chef_edit_form_is_prefilled[chromium]",
+    "tests-python/e2e/admin/test_admin_catalog.py::test_saving_chef_delivery_price_updates_the_storefront_api[chromium]"
+   ],
+   "escaped": [],
+   "detected": true,
+   "recall": 1.0
+  },
+  {
+   "id": "admin-dashboard-revenue-rejected",
+   "file": "apps/admin/src/pages/Dashboard.jsx",
+   "description": "Dashboard revenue excludes delivered instead of rejected orders",
+   "ground_truth": true,
+   "mode": "subset",
+   "selected": 22,
+   "total": 138,
+   "selected_minutes": 0.69,
+   "total_minutes": 3.99,
+   "effects": [
+    "impact map"
+   ],
+   "full_run_seconds": 213,
+   "killed": false,
+   "failing": [],
+   "failing_selected": [],
+   "escaped": [],
+   "detected": null,
+   "recall": null
+  },
+  {
+   "id": "py-cart-panel-locator",
+   "file": "pages/web/cart_panel.py",
+   "description": "Cart page object points at a wrong button",
+   "ground_truth": true,
+   "mode": "subset",
+   "selected": 63,
+   "total": 138,
+   "selected_minutes": 2.64,
+   "total_minutes": 3.99,
+   "effects": [
+    "impact map"
+   ],
+   "full_run_seconds": 360,
+   "killed": true,
+   "failing": [
+    "tests-python/e2e/web/test_cart_totals.py::test_cart_summary_applies_free_delivery_threshold[chromium-2-5,000 AMD-Free-5,000 AMD-None]",
+    "tests-python/e2e/web/test_cart_totals.py::test_cart_summary_applies_free_delivery_threshold[chromium-3-7,500 AMD-Free-7,500 AMD-None]",
+    "tests-python/e2e/web/test_cart_totals.py::test_header_cart_badge_counts_items[chromium]",
+    "tests-python/e2e/web/test_storefront_flows.py::test_cart_quantity_decrease_keeps_item_until_minimum_is_reached[chromium]",
+    "tests-python/e2e/web/test_storefront_flows.py::test_cart_quantity_increase_and_remove_item[chromium]"
+   ],
+   "failing_selected": [
+    "tests-python/e2e/web/test_cart_totals.py::test_cart_summary_applies_free_delivery_threshold[chromium-2-5,000 AMD-Free-5,000 AMD-None]",
+    "tests-python/e2e/web/test_cart_totals.py::test_cart_summary_applies_free_delivery_threshold[chromium-3-7,500 AMD-Free-7,500 AMD-None]",
+    "tests-python/e2e/web/test_cart_totals.py::test_header_cart_badge_counts_items[chromium]",
+    "tests-python/e2e/web/test_storefront_flows.py::test_cart_quantity_decrease_keeps_item_until_minimum_is_reached[chromium]",
+    "tests-python/e2e/web/test_storefront_flows.py::test_cart_quantity_increase_and_remove_item[chromium]"
+   ],
+   "escaped": [],
+   "detected": true,
+   "recall": 1.0
+  },
+  {
+   "id": "be-order-service",
+   "file": "apps/backend/src/main/java/am/foodme/backend/service/OrderReviewService.java",
+   "description": "Backend service change (order reviews)",
+   "ground_truth": false,
+   "mode": "subset",
+   "selected": 38,
+   "total": 138,
+   "selected_minutes": 1.67,
+   "total_minutes": 3.99,
+   "effects": [
+    "backend: 3 endpoint(s)"
+   ]
+  },
+  {
+   "id": "docs-readme",
+   "file": "README.md",
+   "description": "Docs-only change",
+   "ground_truth": false,
+   "mode": "subset",
+   "selected": 0,
+   "total": 138,
+   "selected_minutes": 0.0,
+   "total_minutes": 3.99,
+   "effects": [
+    "ignored"
+   ]
+  },
+  {
+   "id": "build-web-package",
+   "file": "apps/web/package.json",
+   "description": "Storefront build config change",
+   "ground_truth": false,
+   "mode": "all",
+   "selected": 138,
+   "total": 138,
+   "selected_minutes": 3.99,
+   "total_minutes": 3.99,
+   "effects": [
+    "run all (rule apps/web/package.json)"
+   ]
+  }
+ ]
+}

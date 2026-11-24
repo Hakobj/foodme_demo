@@ -5,9 +5,19 @@ import pytest
 import requests
 
 from clients import FoodMeApi
+from selection import pytest_plugin as selection_plugin
 from support.config import API_BASE_URL
 from support.markers import suite_markers
 from support.servers import is_up
+
+
+def pytest_addoption(parser):
+    """--collect-impact / --select-from (Selection Based Testing, see selection/README.md)."""
+    selection_plugin.add_options(parser)
+
+
+def pytest_configure(config):
+    config.pluginmanager.register(selection_plugin.SelectionPlugin(config), "selection")
 
 
 @pytest.fixture(scope="session")

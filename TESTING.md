@@ -8,10 +8,17 @@ the requirements and the `.venv` sit at the repo root. It includes a port of the
 |---|---|---|---|
 | `tests-python/unit/` | unit | The suite's own helpers in isolation: data builders, API flows, API clients, config, dev-server helpers, marker mapping (mocks, no I/O) | nothing |
 | `tests-python/integration/` | integration | Backend REST API over HTTP: port of the JUnit/MockMvc suite + admin API, order status workflow, delivery price | backend |
-| `tests-python/e2e/web/` | e2e | Storefront UI through Playwright (port of `apps/web/e2e/*.spec.ts` + sign-in) | backend + web dev server |
-| `tests-python/e2e/admin/` | e2e | Back office UI through Playwright (port of `apps/admin/e2e` + reject / deliver) | backend + admin dev server |
+| `tests-python/e2e/web/` | e2e | Storefront UI through Playwright: port of `apps/web/e2e/*.spec.ts`, sign-in, ratings, and explore search / kitchen filters, chef menu, dish modal, cart totals, checkout form, auth forms, order tracking | web dev server (backend: in-memory mock) |
+| `tests-python/e2e/admin/` | e2e | Back office UI through Playwright: port of `apps/admin/e2e`, reject / deliver, reviews, and dashboard, chef / dish edit forms, order details | admin dev server (backend: in-memory mock) |
 
 Each test is marked from its folder: `unit`, `integration` (also `api`), `e2e` (also `web` / `admin`).
+
+The e2e suite has 139 tests (`pytest -m e2e --collect-only -q`). Pull requests run only the e2e tests a change can affect: see `selection/README.md` (Selection Based Testing) and `selection/EVALUATION.md` (how the selection is measured).
+```bash
+python -m selection select --base origin/main        # -> selection.json (which tests, and why)
+pytest -m e2e --select-from=selection.json           # run only those
+pytest -m e2e --collect-impact=selection/impact-map.json   # rebuild the map (full run)
+```
 
 ## Structure (Page Object Model)
 `tests-python/` holds only tests. `pytest.ini` sets `testpaths = tests-python` and puts the repo root on

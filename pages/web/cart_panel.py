@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-from playwright.sync_api import Page, expect
+from playwright.sync_api import Locator, Page, expect
 
 if TYPE_CHECKING:
     from pages.web.checkout_page import CheckoutPage
@@ -23,6 +23,19 @@ class CartPanel:
         self.remove_button = self.root.get_by_role("button", name="Remove item")
         self.empty_message = self.root.get_by_text(re.compile("empty", re.I))
         self.checkout_link = self.root.get_by_role("link", name="Go to checkout")
+        self.foreign_cart_message = self.root.get_by_text("Cart has another kitchen")
+        self.go_to_current_cart_link = self.root.get_by_role("link", name="Go to current cart")
+        self.free_delivery_hint = self.root.get_by_text(re.compile(r"more for free delivery"))
+        self.item_count_badge = self.root.locator("h3 + span")
+
+    def summary_value(self, label: str) -> Locator:
+        """The amount next to "Subtotal", "Delivery" or "Total" in the panel's price summary."""
+        # exact label match, so "Total" doesn't also match the "Subtotal" row
+        label_span = self.page.get_by_text(label, exact=True)
+        return self.root.locator("div.flex.items-baseline").filter(has=label_span).locator("span").last
+
+    def item(self, name: str) -> Locator:
+        return self.items.filter(has_text=name)
 
     def increase(self) -> CartPanel:
         self.increase_button.click()

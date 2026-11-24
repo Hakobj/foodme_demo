@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@0.0.85", "--headless", "--isolated", "--browser", "chrome"]
+    },
+    "glitchtip": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "mcp-glitchtip@0.1.2"],
+      "env": {
+        "GLITCHTIP_TOKEN": "${GLITCHTIP_TOKEN}",
+        "GLITCHTIP_ORGANIZATION": "${GLITCHTIP_ORGANIZATION:-foodme}",
+        "GLITCHTIP_BASE_URL": "${GLITCHTIP_BASE_URL:-https://app.glitchtip.com}"
+      }
+    },
+    "grafana": {
+      "type": "http",
+      "url": "${GRAFANA_MCP_URL:-https://foodme-monitoring.onrender.com/mcp}"
+    }
+  }
+}
