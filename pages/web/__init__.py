@@ -1,7 +1,7 @@
 from pages.web.cart_panel import CartPanel
 from pages.web.checkout_page import CheckoutPage
 from pages.web.chef_page import ChefPage, DishModal
-from pages.web.components import CreateAccountForm, Header, SignInForm
+from pages.web.components import CreateAccountForm, Footer, Header, SignInForm
 from pages.web.explore_page import ExplorePage
 from pages.web.home_page import HomePage
 from pages.web.login_page import LoginPage
@@ -14,6 +14,7 @@ __all__ = [
     "CreateAccountForm",
     "DishModal",
     "ExplorePage",
+    "Footer",
     "Header",
     "HomePage",
     "LoginPage",

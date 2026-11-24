@@ -31,8 +31,11 @@ jobs:
 
   # Real storefront + back office in a browser; the backend is an in-memory mock
   # (tests-python/e2e/conftest.py), so no Java, database or Docker is needed.
+  # Pull requests run the selected e2e tests (+ the full suite in shadow mode) in selective-e2e.yml;
+  # pushes to main and manual runs always run the whole suite here.
   e2e-tests:
     name: E2E tests
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

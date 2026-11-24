@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from typing import TYPE_CHECKING
+from urllib.parse import urlencode
 
 from playwright.sync_api import Page, expect
 
@@ -21,6 +22,10 @@ class LoginPage(BasePage):
         super().__init__(page)
         self.account = CreateAccountForm(page)
         self.sign_in_form = SignInForm(page)
+
+    def open_with_next(self, next_path: str) -> Self:
+        self.page.goto(f"{self.PATH}?{urlencode({'next': next_path})}")
+        return self
 
     def wait_loaded(self) -> Self:
         expect(self.page).to_have_url(re.compile(r"/login"))

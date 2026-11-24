@@ -21,6 +21,18 @@ class Header:
         self.root = page.get_by_role("banner")
         self.explore_chefs_link = self.root.get_by_role("link", name="Explore chefs")
         self.sign_in_link = self.root.get_by_role("link", name="Sign in")
+        self.home_link = self.root.get_by_role("link", name="FoodMe home")
+        self.search_box = self.root.get_by_role("searchbox", name="Search FoodMe")
+        self.cart_link = self.root.get_by_role("link", name=re.compile(r"^Cart"))
+        self.orders_link = self.root.get_by_role("link", name="Orders", exact=True)
+        self.account_link = self.root.get_by_role("link", name=re.compile(r"^Account, "))
+
+    def search(self, query: str) -> ExplorePage:
+        from pages.web.explore_page import ExplorePage
+
+        self.search_box.fill(query)
+        self.search_box.press("Enter")
+        return ExplorePage(self.page).wait_loaded()
 
     def go_to_explore(self) -> ExplorePage:
         from pages.web.explore_page import ExplorePage
@@ -35,6 +47,16 @@ class Header:
         return LoginPage(self.page).wait_loaded()
 
 
+class Footer:
+    def __init__(self, page: Page):
+        self.page = page
+        self.root = page.get_by_role("contentinfo")
+        self.disclaimer = self.root.get_by_text("Chefs, dishes and orders on this site are fictional.")
+
+    def link(self, name: str) -> Locator:
+        return self.root.get_by_role("link", name=name, exact=True)
+
+
 class SignInForm:
     """The "Sign in" tab of the auth panel (/login and checkout)."""
 
@@ -46,6 +68,9 @@ class SignInForm:
         self.password = self.form.get_by_label("Password")
         self.submit_button = self.form.get_by_role("button", name="Sign in")
         self.error = self.form.get_by_role("alert")
+
+    def field_error(self, message: str) -> Locator:
+        return self.form.get_by_text(message)
 
     def sign_in(self, email: str, password: str = DEFAULT_PASSWORD) -> None:
         self.tab.click()
@@ -66,6 +91,10 @@ class CreateAccountForm:
         self.phone = self.form.get_by_label("Phone")
         self.password = self.form.get_by_label("Password")
         self.submit_button = self.form.get_by_role("button", name="Create account")
+        self.error = self.form.get_by_role("alert")
+
+    def field_error(self, message: str) -> Locator:
+        return self.form.get_by_text(message)
 
     def signed_in_as(self, name: str) -> Locator:
         return self.page.get_by_text(re.compile(f"Signed in as {re.escape(name)}"))

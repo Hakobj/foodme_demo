@@ -3,10 +3,10 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-from playwright.sync_api import Page, expect
+from playwright.sync_api import Locator, Page, expect
 
 from pages.base_page import BasePage
-from pages.web.components import CreateAccountForm
+from pages.web.components import CreateAccountForm, SignInForm
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -20,6 +20,9 @@ class CheckoutPage(BasePage):
     def __init__(self, page: Page):
         super().__init__(page)
         self.account = CreateAccountForm(page)
+        self.sign_in_form = SignInForm(page)
+        self.heading = page.get_by_role("heading", name="Checkout", level=1)
+        self.signed_in_text = page.get_by_text(re.compile(r"^Signed in as "))
         self.empty_cart_message = page.get_by_text(re.compile("Your cart is empty", re.I))
 
         self.form = page.get_by_role("form", name="Checkout")
@@ -38,11 +41,32 @@ class CheckoutPage(BasePage):
         self.bank_card_payment = page.get_by_role("radio", name=re.compile("Bank card", re.I))
         self.idram_payment = page.get_by_role("radio", name=re.compile("Idram", re.I))
 
+        self.note = page.get_by_placeholder("Allergies, instructions, gate code...")
+        self.submit_error = page.get_by_role("alert").filter(has_text="Sign in or create an account")
+
         self.place_order_button = page.get_by_role("button", name="Place order")
+        self.price_summary = page.locator(".cps_wrap")
 
         self.summary = page.locator(".cs_wrap")
         self.summary_first_quantity = self.summary.locator(".tabular-nums.text-zinc-400").first
         self.summary_first_additions = self.summary.get_by_text(re.compile(r"^\+ ")).first
+
+    def field_error(self, message: str) -> Locator:
+        return self.form.get_by_text(message, exact=True)
+
+    def summary_value(self, label: str) -> Locator:
+        """The amount next to "Subtotal", "Delivery" or "Total" in the price summary."""
+        row = self.price_summary.locator("div.flex.items-center.justify-between")
+        return row.filter(has=self.page.get_by_text(label, exact=True)).locator("span").last
+
+    def sign_in(self, email: str, password: str) -> Self:
+        self.sign_in_form.sign_in(email, password)
+        return self
+
+    def submit_invalid(self) -> Self:
+        """Clicks "Place order" when the form is expected to be rejected (no navigation)."""
+        self.place_order_button.click()
+        return self
 
     def wait_loaded(self) -> Self:
         expect(self.page).to_have_url(re.compile(r"/checkout"))

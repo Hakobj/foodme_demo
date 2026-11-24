@@ -20,6 +20,7 @@ class OrdersPage(BasePage):
         super().__init__(page)
         self.heading = page.get_by_role("heading", name="Your orders")
         self.empty_message = page.get_by_text(re.compile("No orders yet", re.I))
+        self.browse_chefs_link = page.get_by_role("main").get_by_role("link", name="Browse chefs")
 
     def wait_loaded(self) -> Self:
         expect(self.page).to_have_url(re.compile(r"/orders$"))
@@ -30,6 +31,13 @@ class OrdersPage(BasePage):
 
     def order_card(self, number: str) -> Locator:
         return self.page.get_by_role("listitem", name=f"Order {number}")
+
+    def status_badge(self, number: str) -> Locator:
+        return self.order_card(number).locator("span.rounded-full").first
+
+    def open_tracking(self, number: str) -> TrackingPage:
+        self.order_card(number).get_by_role("link").first.click()
+        return TrackingPage(self.page).wait_loaded()
 
     def rate_order_button(self, number: str) -> Locator:
         return self.order_card(number).get_by_role("button", name="Rate order")
@@ -102,12 +110,25 @@ class TrackingPage(BasePage):
     def __init__(self, page: Page):
         super().__init__(page)
         self.all_orders_link = page.get_by_role("link", name="All orders")
+        self.heading = page.get_by_role("heading", level=1)
+        self.chef_line = page.get_by_text(re.compile(r"^Chef · "))
+        self.load_error = page.get_by_text("Couldn’t load this order")
+        # aria-current marks the step's circle; the <li> holds the circle and its label.
+        self.current_step = page.locator("li").filter(has=page.locator('[aria-current="step"]'))
+        self.total = page.get_by_text("Total", exact=True).locator("xpath=following-sibling::span[1]")
         self.review_section = page.get_by_role("region", name="Your rating")
         self.review_stars = self.review_section.get_by_role("img", name=re.compile(r"Rated \d out of 5"))
 
     def open_order(self, number: str) -> Self:
         self.page.goto(f"/tracking/{number}")
         return self.wait_loaded()
+
+    def status_title(self, title: str) -> Locator:
+        return self.page.get_by_text(title, exact=True).first
+
+    def item_row(self, dish_name: str) -> Locator:
+        """One "<qty> × <dish>  <price>" row of the Items card."""
+        return self.page.locator("div.divide-y > div").filter(has_text=dish_name)
 
     def wait_loaded(self) -> Self:
         expect(self.page).to_have_url(re.compile(r"/tracking/FM-"))

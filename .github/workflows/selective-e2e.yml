@@ -1,0 +1,146 @@
+name: Selective e2e
+
+# Selection Based Testing for pull requests (selection/README.md):
+#   select    git diff vs the base branch + selection/impact-map.json -> selection.json
+#             (optional AI reviewer may ADD tests, never remove them: repo variable SELECTION_AI_REVIEW=true)
+#   e2e       runs only the selected Python e2e tests
+#   shadow    while the selection is being evaluated (repo variable SELECTION_SHADOW, default on), also runs
+#             the FULL e2e suite and audits it: a test that failed in the full run but wasn't selected is an
+#             escape (selection/EVALUATION.md). Set SELECTION_SHADOW=false once the escape rate is 0.
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      base:
+        description: "Base ref to diff against"
+        default: "origin/main"
+
+concurrency:
+  group: selective-e2e-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  select:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+      id-token: write
+    outputs:
+      mode: ${{ steps.select.outputs.mode }}
+      count: ${{ steps.merge.outputs.count || steps.select.outputs.count }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip, cache-dependency-path: requirements.txt }
+      - run: pip install -r requirements.txt
+      - name: Select tests
+        id: select
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || inputs.base || 'origin/main' }}
+        run: python -m selection select --base "$BASE" --head HEAD --out selection.json --summary selection.md
+
+      - name: AI reviewer (adds tests the map can't see)
+        if: vars.SELECTION_AI_REVIEW == 'true' && steps.select.outputs.mode == 'subset'
+        continue-on-error: true
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: |
+            You review a test selection for this pull request. Do not edit any file except selection-additions.json.
+            Inputs: `git diff ${{ github.event.pull_request.base.sha || 'origin/main' }}...HEAD`, selection.json (the
+            tests chosen from a coverage map, with reasons), and the e2e tests under tests-python/e2e/.
+            The map only knows code that ran when it was recorded. Look for changes it can't see: new behaviour
+            reached through config or data, renamed UI text that other tests assert on, changed API contracts,
+            shared helpers. Write selection-additions.json as a JSON list of {"test": "<node id from
+            selection/impact-map.json, or an e2e test file path>", "reason": "<one line>"}. Write [] when nothing
+            is missing. You can only add tests, never remove them. Be conservative: max 15 additions.
+          claude_args: |
+            --max-turns 25
+            --allowedTools "Read,Glob,Grep,Write,Bash(git diff:*),Bash(git log:*)"
+      - name: Merge AI additions
+        id: merge
+        if: vars.SELECTION_AI_REVIEW == 'true' && steps.select.outputs.mode == 'subset'
+        run: |
+          [ -f selection-additions.json ] || echo "[]" > selection-additions.json
+          python -m selection merge-additions --selection selection.json --additions selection-additions.json \
+            --summary selection.md
+      - run: cat selection.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: selection
+          path: |
+            selection.json
+            selection.md
+            selection-additions.json
+          if-no-files-found: ignore
+
+  e2e:
+    needs: select
+    if: needs.select.outputs.mode == 'all' || needs.select.outputs.count != '0'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: selection }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: npm ci --prefix apps/web && npm ci --prefix apps/admin
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip, cache-dependency-path: requirements.txt }
+      - run: pip install -r requirements.txt
+      - run: playwright install --with-deps chromium
+      - name: Selected e2e tests
+        run: pytest -m e2e --select-from=selection.json --junitxml=selected.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: e2e-selected, path: selected.xml }
+
+  shadow:
+    needs: select
+    if: vars.SELECTION_SHADOW != 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: selection }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: npm ci --prefix apps/web && npm ci --prefix apps/admin
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip, cache-dependency-path: requirements.txt }
+      - run: pip install -r requirements.txt
+      - run: playwright install --with-deps chromium
+      - name: Full e2e suite (ground truth)
+        id: full
+        continue-on-error: true
+        run: pytest -m e2e --junitxml=full.xml
+      - name: Rerun failures (flaky filter)
+        if: steps.full.outcome == 'failure'
+        continue-on-error: true
+        run: pytest -m e2e --last-failed --junitxml=rerun.xml
+      - name: Audit the selection
+        run: |
+          python -m selection audit --selection selection.json --junit full.xml \
+            $( [ -f rerun.xml ] && echo --rerun-junit rerun.xml ) --summary audit.md --fail-on-escape
+      - name: Summary
+        if: always()
+        run: '[ -f audit.md ] && cat audit.md >> "$GITHUB_STEP_SUMMARY" || true'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: selection-audit
+          path: |
+            full.xml
+            rerun.xml
+            audit.md
+          if-no-files-found: ignore
